@@ -233,61 +233,154 @@ def sgd(data, weights, learning_rate=0.0001):
 
     return weights
 
+def print_result(result_type,
+                 n_iter,
+                 n_epochs,
+                 weights,
+                 coefficients,
+                 time):
+    """Helper function to print results in a formatted manner"""
+    output = ("[{res_type}]    n_dim: {dim} max_error: {m_err} runtime: {time} seconds "
+            "n_iter: {n_iter} n_epochs: {n_epoch}").format(
+                    res_type=result_type,
+                    dim=coefficients.size,
+                    m_err=np.max(np.abs(weights-coefficients)),
+                    time=time,
+                    n_iter=n_iter,
+                    n_epoch=n_epochs)
+    print(output)
+
+
+def run_test(num_tests=None,
+             num_repetition=10,
+             size_range=(10,100),
+             batch_count=5):
+    """Runs a set of tests, stepping up the test size each iteration"""
+
+    if num_tests is None:
+        num_tests = size_range[1]//size_range[0]
+
+    test_step = (size_range[1] - size_range[0])//num_tests
+
+    print("Starting tests...")
+
+    for test_num in range(1, num_tests + 1):
+        # get test size
+        test_size = test_step*test_num
+        
+        # generate coefficients and data
+        coefficients = create_coefficients(test_size)
+        n_data = 1000*test_size
+        data, labels = generate_labeled_data(n_data, coefficients)
+
+        # set hyperparameters
+        n_epochs = n_data
+        learning_rate = 0.000001
+        
+        print("\nRunning tests of parameter size {} and {} data points".format(
+            test_size, n_data))
+
+        # Run tests where repeat num goes from 1 to 10
+        # and batch size steps through the range 1 to
+        # max batch size, steps of factors of 10
+        for batch_num in range(1, batch_count + 1):
+            batch_size = 10 * batch_num
+            print("\nRunning tests for batch size {}".format(batch_size))
+
+            for repeat_num in range(1, 11):
+                print("\nRunning tests with RSGD repeat parameter {}".format(repeat_num))
+
+                for mult_test_count in range(num_repetition):
+                    with Timer() as repeat_timer:
+                        (repeat_iter, repeat_epochs, repeat_pts, repeat_w) = \
+                               repeated_epoch_sgd(data,
+                                                  labels,
+                                                  coefficients,
+                                                  num_epochs=n_epochs,
+                                                  batch_size=batch_size,
+                                                  repeat_num=repeat_num,
+                                                  optimizer=sgd,
+                                                  learning_rate=learning_rate,
+                                                  log_rate=0)
+                    print_result("RSGD",
+                                 repeat_iter,
+                                 repeat_epochs,
+                                 repeat_w,
+                                 coefficients,
+                                 repeat_timer.interval)
+
+                    with Timer() as std_timer:
+                        (std_iter, std_epochs, std_pts, std_w) = epoch_based_sgd(data,
+                                                                                 labels,
+                                                                                 coefficients,
+                                                                                 num_epochs=n_epochs,
+                                                                                 batch_size=batch_size,
+                                                                                 optimizer=sgd,
+                                                                                 learning_rate=learning_rate/repeat_num,
+                                                                                 log_rate=0)
+                    print_result("SGD",
+                                 std_iter,
+                                 std_epochs,
+                                 std_w,
+                                 coefficients,
+                                 std_timer.interval)
+
 if __name__ == "__main__":
-    # Set problem size
-    p_size = 100
+    run_test()
+   # # Set problem size
+   # p_size = 100
 
-    # Generate coefficients
-    coefficients = create_coefficients(p_size)
-    print("generated {n} coefficients.".format(n=p_size))
+   # # Generate coefficients
+   # coefficients = create_coefficients(p_size)
+   # print("generated {n} coefficients.".format(n=p_size))
 
-    # Generate data
-    n_data = 100000
-    data, labels = generate_labeled_data(n_data, coefficients)
-    print("generated {n} data points".format(n=labels.size))
+   # # Generate data
+   # n_data = 100000
+   # data, labels = generate_labeled_data(n_data, coefficients)
+   # print("generated {n} data points".format(n=labels.size))
 
-    # Hyper parameters
-    num_epochs = n_data*10
-    batch_size = 50
-    learning_rate = 0.0000001
-    repeat_num = 10
-    # run extraction_based_sgd
-    print("Running repeated_epoch_sgd...")
-    with Timer() as t2:
-        (repeat_iter, repeat_epochs, repeat_n_pts, repeat_w) = repeated_epoch_sgd(data,
-                                                     labels,
-                                                     coefficients,
-                                                     num_epochs=num_epochs,
-                                                     batch_size=batch_size,
-                                                     repeat_num=repeat_num,
-                                                     optimizer=sgd,
-                                                     learning_rate=learning_rate,
-                                                     log_rate=100)
-    #print("repeated_epoch_sgd completed {} and found weights:\n{}".format(
-    #    repeat_itr, repeat_w))
-    print("Completed in {} iterations.".format(repeat_iter))
-    print("max error: {}".format(np.max(np.abs(coefficients - repeat_w))))
-    print("saw {} epochs and {} data points".format(repeat_epochs,
-        repeat_n_pts))
-    print("in {:.03f} seconds".format(t2.interval))
+   # # Hyper parameters
+   # num_epochs = n_data*10
+   # batch_size = 50
+   # learning_rate = 0.0000001
+   # repeat_num = 10
+   # # run extraction_based_sgd
+   # print("Running repeated_epoch_sgd...")
+   # with Timer() as t2:
+   #     (repeat_iter, repeat_epochs, repeat_n_pts, repeat_w) = repeated_epoch_sgd(data,
+   #                                                  labels,
+   #                                                  coefficients,
+   #                                                  num_epochs=num_epochs,
+   #                                                  batch_size=batch_size,
+   #                                                  repeat_num=repeat_num,
+   #                                                  optimizer=sgd,
+   #                                                  learning_rate=learning_rate,
+   #                                                  log_rate=100)
+   # #print("repeated_epoch_sgd completed {} and found weights:\n{}".format(
+   # #    repeat_itr, repeat_w))
+   # print("Completed in {} iterations.".format(repeat_iter))
+   # print("max error: {}".format(np.max(np.abs(coefficients - repeat_w))))
+   # print("saw {} epochs and {} data points".format(repeat_epochs,
+   #     repeat_n_pts))
+   # print("in {:.03f} seconds".format(t2.interval))
 
-    # run epoch_based_sgd
-    print("Running epoch_based_sgd...")
-    with Timer() as t1:
-        (epoch_iter, std_epochs, std_n_pts, epoch_w) = epoch_based_sgd(data,
-                                                labels,
-                                                coefficients,
-                                                num_epochs=num_epochs,
-                                                batch_size=batch_size,
-                                                optimizer=sgd,
-                                                learning_rate=learning_rate/repeat_num,
-                                                log_rate=100)
+   # # run epoch_based_sgd
+   # print("Running epoch_based_sgd...")
+   # with Timer() as t1:
+   #     (epoch_iter, std_epochs, std_n_pts, epoch_w) = epoch_based_sgd(data,
+   #                                             labels,
+   #                                             coefficients,
+   #                                             num_epochs=num_epochs,
+   #                                             batch_size=batch_size,
+   #                                             optimizer=sgd,
+   #                                             learning_rate=learning_rate/repeat_num,
+   #                                             log_rate=100)
 
-    #print("epoch_based_sgd completed {} iterations and found weights:\n{}".format(
-    #    epoch_iter, epoch_w))
-    print("Completed in {} iterations.".format(epoch_iter))
-    print("max error: {}".format(np.max(np.max(coefficients - epoch_w))))
-    print("saw {} epochs and {} data points".format(std_epochs, std_n_pts))
-    print("in {:.03f} seconds".format(t1.interval))
+   # #print("epoch_based_sgd completed {} iterations and found weights:\n{}".format(
+   # #    epoch_iter, epoch_w))
+   # print("Completed in {} iterations.".format(epoch_iter))
+   # print("max error: {}".format(np.max(np.max(coefficients - epoch_w))))
+   # print("saw {} epochs and {} data points".format(std_epochs, std_n_pts))
+   # print("in {:.03f} seconds".format(t1.interval))
 
 
