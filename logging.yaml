@@ -1,0 +1,19 @@
+version: 1
+formatters:
+    detail:
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(funcName)s:%(lineno)d :: %(message)s'
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: detail
+        stream: ext://sys.stdout
+    file:
+        class: logging.FileHandler
+        level: DEBUG
+        formatter: detail
+        filename: srgd.log
+
+root:
+    level: DEBUG
+    handlers: [console, file]
