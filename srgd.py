@@ -53,13 +53,14 @@ def generate_labeled_data(n_data, func, x_min=-1000, x_max=1000):
 
 def get_gradient(diff, x_vals):
     """Gradient for linear function and square loss"""
+    logger.debug("diff: {} - x_vals: {}".format(diff, x_vals))
     return diff * x_vals
 
 def main():
     """Main function"""
     # array of problem sizes 
     dimension = 5
-    n_data = dimension*5
+    n_data = dimension*1000
     mini_batch_sizes = [1, 10, 20, 50]
     logger.info("Test dimension: {}".format(dimension))
     logger.info("Number of data points: {}".format(n_data))
@@ -77,29 +78,47 @@ def main():
     approx_f_sgd = LinearFunction(dim=dimension)
     approx_f_assgd = LinearFunction(dim=dimension)
     approx_f_srgd = LinearFunction(dim=dimension)
+    approx_f_assrgd = LinearFunction(dim=dimension)
 
     # Initialize optimizers
     logger.info("Initializing optimizer objects")
     sgd = SGD(func=test_func,
             approx_func=approx_f_sgd,
             gradient=get_gradient,
-            learning_rate=0.00001)
+            learning_rate=0.000001)
     assgd = ASSGD(func=test_func,
             approx_func=approx_f_assgd,
-            gradient=get_gradient)
+            gradient=get_gradient,
+            learning_rate=0.000001)
     srgd = SRGD(func=test_func,
             approx_func=approx_f_srgd,
             gradient=get_gradient,
             learning_rate=0.00001)
+    assrgd = SRGD(func=test_func,
+            approx_func=approx_f_assrgd,
+            gradient=get_gradient,
+            threshold=0.01,
+            learning_rate=0.00001)
+
+    sgd.set_log_rate(500)
+    assgd.set_log_rate(500)
+    srgd.set_log_rate(500)
+    assrgd.set_log_rate(500)
 
     logger.info("Initialization complete - beginning tests...")
     
-    sgd.solve(x_vals, labels, n_data)
-    logger.info("SGD solved coefficients: {}".format(sgd.approx_func.parameters))
-    assgd.solve(x_vals, labels, n_data)
-    logger.info("ASSGD solved coefficients: {}".format(assgd.approx_func.parameters))
-    srgd.solve(x_vals, labels, n_data)
-    logger.info("SRGD solved coefficients: {}".format(srgd.approx_func.parameters))
+    sgd_step_count = sgd.solve(x_vals, labels, n_data)
+    logger.info("SGD solved coefficients in {} steps: {}".format(sgd_step_count,
+                                                                 sgd.approx_func.parameters))
+    assgd_step_count = assgd.solve(x_vals, labels, n_data)
+    logger.info("ASSGD solved coefficients in {} steps: {}".format(assgd_step_count,
+                                                                   assgd.approx_func.parameters))
+    srgd_step_count = srgd.solve(x_vals, labels, n_data)
+    logger.info("SRGD solved coefficients in {} steps: {}".format(srgd_step_count,
+                                                                  srgd.approx_func.parameters))
+    assrgd_step_count = assrgd.solve(x_vals, labels, n_data)
+    logger.info("ASSGRD solved coefficients in {} steps: {}".format(assrgd_step_count,
+                                                        assrgd.approx_func.parameters))
 
 if __name__ == "__main__":
     main()

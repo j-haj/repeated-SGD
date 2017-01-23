@@ -13,7 +13,7 @@ class Optimizer:
                  func=None,
                  approx_func=None,
                  gradient=None,
-                 learning_rate=0.0001):
+                 learning_rate=0.000001):
         """Must provide both a function and a gradient
         for evaluating y_hat as well as getting gradient
         values.
@@ -23,21 +23,30 @@ class Optimizer:
         self.approx_func = approx_func
         self.gradient = gradient
         self._learning_rate = learning_rate
-        self.error_tracker = []
+        self.training_error = []
+        self.tail_error = []
 
         self._max_iter = 100000
+        self.log_rate = 0
 
     def update_weights(self, data):
         """Interface method - should be implemented in subclasses"""
         logger.error("Attempted to instantiate abstract Optimizer class")
         raise NotImplementedError("Must implement this method in inherited class")
+    
+    def set_log_rate(self, n):
+        """Set the interval at which status data is logged.
+        Default value is 0 - which means no log data for
+        intermediate results.
+        """
+        self.log_rate = n
 
     def solve(self,
               data,
               labels,
               num_epochs=None,
               batch_size=1,
-              early_stop=0.000001):
+              early_stop=1e-12):
         """Solves for the weights that minimize there loss functoin
 
         Parameters:
@@ -55,7 +64,8 @@ class Optimizer:
         idx = 0
         for epoch_num in range(num_epochs):
 
-            if idx > self._max_iter or np.allclose(old_weights, self.approx_func.parameters):
+            if idx > self._max_iter or np.linalg.norm(np.subtract(old_weights,
+                                                      self.approx_func.parameters)) < early_stop:
                 if idx > self._max_iter:
                     logger.info("Stopping early due to exceeds max number of iterations")
                 else:
@@ -70,8 +80,27 @@ class Optimizer:
                                         axis=1)[batch_indices]
 
             # Run weight update
+            if idx > 0:
+                tail_diff = np.subtract(old_weights, self.approx_func.parameters)
+                train_diff = np.subtract(self.approx_func.parameters, self.function.parameters)
+                
+                max_tail_err = np.max(np.fabs(tail_diff))
+                norm_tail_err = np.linalg.norm(tail_diff)
+                max_train_err = np.max(np.fabs(train_diff))
+                norm_train_err = np.linalg.norm(train_diff)
+
+                self.tail_error.append((max_tail_err, norm_tail_err))
+                self.training_error.append((max_train_err, norm_train_err))
+                if self.log_rate > 0 and idx % self.log_rate == 0:
+                    logger.debug("[{}] Tail error - max:  {:.4f}".format(idx, max_tail_err))
+                    logger.debug("[{}] Tail error - norm: {:.4f}".format(idx, norm_tail_err))
+                    logger.debug("[{}] Train error - max:  {:.4f}".format(idx, max_train_err))
+                    logger.debug("[{}] Train error - norm: {:.4f}".format(idx, norm_train_err))
+
             old_weights = self.approx_func.parameters
-            self.update_weights(mini_batch)
+            idx += self.update_weights(mini_batch)
+
+        return idx
 
 class SGD(Optimizer):
     """Stochastic Gradient Descent optimizer."""
@@ -103,6 +132,7 @@ class SGD(Optimizer):
 
         self.approx_func.parameters = np.subtract(self.approx_func.parameters,
                                                   self._learning_rate * aggregate_grad)
+        return 1
 
 class ASSGD(Optimizer):
     """Accelerated Stochastic Gradient class - similar to SGD but uses
@@ -112,8 +142,10 @@ class ASSGD(Optimizer):
                  func=None,
                  approx_func=None,
                  gradient=None,
+                 learning_rate=0.0001,
                  threshold=0.01,
-                 step_factor=0.5):
+                 step_factor=0.5,
+                 threshold_step=0.1):
         """Initializer
 
         Parameters:
@@ -123,9 +155,10 @@ class ASSGD(Optimizer):
             func: function approximating the target function
             gradient: function that returns the gradient
         """
-        super(ASSGD, self).__init__(func, approx_func, gradient)
+        super(ASSGD, self).__init__(func, approx_func, gradient, learning_rate)
         self._threshold = threshold
         self._step_factor = step_factor
+        self._threshold_step = threshold_step
 
     def update_weights(self, data):
         """Runs a single weight update and returns the updated weights"""
@@ -133,15 +166,18 @@ class ASSGD(Optimizer):
         x_vals = data[:, :-1]
         y = data[:, -1]
         aggregate_grad = 0
-
+        
         for i in range(y.size):
             y_hat = self.approx_func.evaluate(x_vals[i, :])
             diff = y_hat - y[i]
 
             # Check diff and update learning rate if necessary
-            if abs(diff) < self._threshold:
+            if np.linalg.norm(np.subtract(self.approx_func.parameters,
+                                          self.function.parameters)) < self._threshold:
                 self._learning_rate *= self._step_factor
-                logger.info(("Difference in y_hat values below threshold - "
+                self._threshold *= self._threshold_step
+
+                logger.debug(("Difference in y_hat values below threshold - "
                         "decreasing the step-size by a factor of {} to {}").format(
                             self._learning_rate, self._step_factor))
 
@@ -151,6 +187,7 @@ class ASSGD(Optimizer):
 
         self.approx_func.parameters = np.subtract(self.approx_func.parameters,
                                                   self._learning_rate * aggregate_grad)
+        return 1
 
 class SRGD(Optimizer):
     """Stochastic Repeated Gradient Descent using adaptive step-size"""
@@ -198,7 +235,7 @@ class SRGD(Optimizer):
                 # Check diff and update learning rate if necessary
                 if abs(diff) < self._threshold:
                     self._learning_rate *= self._step_factor
-                    logger.info(("Difference in y_hat values below threshold - "
+                    logger.debug(("Difference in y_hat values below threshold - "
                             "decreasing the step-size by a factor of {} to {}").format(
                                 self._learning_rate, self._step_factor))
 
@@ -208,3 +245,5 @@ class SRGD(Optimizer):
 
             self.approx_func.parameters = np.subtract(self.approx_func.parameters,
                                                       aggregate_grad * self._learning_rate)
+
+        return self._repeat_num

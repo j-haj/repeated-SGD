@@ -24,7 +24,7 @@ class LinearFunction(Function):
         y = a_1 * x_1 + a_2 * x_2 + ... + a_n * x_n
     """
 
-    def __init__(self, dim, parameters=None):
+    def __init__(self, dim, parameters=None, p_min=0, p_max=1):
         """Initializer
 
         Parameters:
@@ -34,7 +34,7 @@ class LinearFunction(Function):
         """
         if parameters is None:
             logger.info("Paramters is None - generating random paramters between [0, 1]")
-            parameters = np.random.randint(0, 1, dim)
+            parameters = np.random.randint(p_min, p_max, dim)
         super(LinearFunction, self).__init__(parameters)
         self.dim = dim
 
