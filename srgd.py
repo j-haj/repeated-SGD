@@ -67,6 +67,7 @@ def main():
     # Create coefficients and true func
     logger.info("Creating coefficients and true function")
     coefficients = create_coefficients(dimension)
+    logger.info("Created coefficients: {}".format(coefficients))
     test_func = LinearFunction(dim=dimension, parameters=coefficients)
     x_vals, labels = generate_labeled_data(n_data,
                                            test_func)
@@ -81,22 +82,23 @@ def main():
     logger.info("Initializing optimizer objects")
     sgd = SGD(func=test_func,
             approx_func=approx_f_sgd,
-            gradient=get_gradient)
+            gradient=get_gradient,
+            learning_rate=0.00001)
     assgd = ASSGD(func=test_func,
             approx_func=approx_f_assgd,
             gradient=get_gradient)
     srgd = SRGD(func=test_func,
             approx_func=approx_f_srgd,
-            gradient=get_gradient)
+            gradient=get_gradient,
+            learning_rate=0.00001)
 
     logger.info("Initialization complete - beginning tests...")
     
     sgd.solve(x_vals, labels, n_data)
-    assgd.solve(x_vals, labels, n_data)
-    srgd.solve(x_vals, labels, n_data)
-    
     logger.info("SGD solved coefficients: {}".format(sgd.approx_func.parameters))
+    assgd.solve(x_vals, labels, n_data)
     logger.info("ASSGD solved coefficients: {}".format(assgd.approx_func.parameters))
+    srgd.solve(x_vals, labels, n_data)
     logger.info("SRGD solved coefficients: {}".format(srgd.approx_func.parameters))
 
 if __name__ == "__main__":

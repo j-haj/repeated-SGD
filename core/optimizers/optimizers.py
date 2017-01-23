@@ -177,10 +177,11 @@ class SRGD(Optimizer):
                            this value will geometrically decrease over time
             repeat_num: number of iterations the weights are updated each time
         """
-        super(SRGD, self).__init__(func, gradient, learning_rate)
+        super(SRGD, self).__init__(func, approx_func, gradient, learning_rate)
         self._threshold = threshold
         self._step_factor = step_factor
         self._repeat_num = repeat_num
+        self._learning_rate /= repeat_num
 
     def update_weights(self, data):
         """ Runs SRGD update on the weight self.repeat_num of times"""
