@@ -4,8 +4,8 @@ import yaml
 import os
 import numpy as np
 import datetime
-from generate_charts import generate_chart
-import function
+from function import LinearFunction
+from optimizers import SGD, ASSGD, SRGD
 
 # Setup logging
 with open("logging.yaml", "r") as fd:
@@ -41,6 +41,16 @@ def create_coefficients(n_dim, min_val=-100, max_val=101):
     """
     return np.random.randint(min_val, max_val, n_dim)
 
+def generate_labeled_data(n_data, func, x_min=-1000, x_max=1000):
+    labels = np.zeros(n_data)
+    data = np.zeros((n_data, func.parameters.size))
+    for i in range(n_data):
+        x_data = np.random.randint(x_min, x_max, func.parameters.size)
+        label = func.evaluate(x_data)
+        labels[i] = label
+        data[i] = x_data
+    return (data, labels)
+
 def get_gradient(diff, x_vals):
     """Gradient for linear function and square loss"""
     return diff * x_vals
@@ -51,11 +61,43 @@ def main():
     dimension = 5
     n_data = dimension*5
     mini_batch_sizes = [1, 10, 20, 50]
+    logger.info("Test dimension: {}".format(dimension))
+    logger.info("Number of data points: {}".format(n_data))
 
+    # Create coefficients and true func
+    logger.info("Creating coefficients and true function")
     coefficients = create_coefficients(dimension)
-    test_func = LinearFunction(coefficients)
+    test_func = LinearFunction(dim=dimension, parameters=coefficients)
+    x_vals, labels = generate_labeled_data(n_data,
+                                           test_func)
     
-    generate_chart()
+    # Approx functions
+    logger.info("Creating approximate linear function objects")
+    approx_f_sgd = LinearFunction(dim=dimension)
+    approx_f_assgd = LinearFunction(dim=dimension)
+    approx_f_srgd = LinearFunction(dim=dimension)
+
+    # Initialize optimizers
+    logger.info("Initializing optimizer objects")
+    sgd = SGD(func=test_func,
+            approx_func=approx_f_sgd,
+            gradient=get_gradient)
+    assgd = ASSGD(func=test_func,
+            approx_func=approx_f_assgd,
+            gradient=get_gradient)
+    srgd = SRGD(func=test_func,
+            approx_func=approx_f_srgd,
+            gradient=get_gradient)
+
+    logger.info("Initialization complete - beginning tests...")
+    
+    sgd.solve(x_vals, labels, n_data)
+    assgd.solve(x_vals, labels, n_data)
+    srgd.solve(x_vals, labels, n_data)
+    
+    logger.info("SGD solved coefficients: {}".format(sgd.approx_func.parameters))
+    logger.info("ASSGD solved coefficients: {}".format(assgd.approx_func.parameters))
+    logger.info("SRGD solved coefficients: {}".format(srgd.approx_func.parameters))
 
 if __name__ == "__main__":
     main()

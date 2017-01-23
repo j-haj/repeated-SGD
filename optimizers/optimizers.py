@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from function import *
 
 logger = logging.getLogger()
 
@@ -17,7 +18,7 @@ class Optimizer:
         for evaluating y_hat as well as getting gradient
         values.
         """
-        self._true_coeff = func.get_parameters()
+        self._true_coeff = func.parameters
         self.function = func
         self.approx_func = approx_func
         self.gradient = gradient
@@ -54,7 +55,7 @@ class Optimizer:
         idx = 0
         for epoch_num in range(num_epochs):
 
-            if idx > self._max_iter or np.allclose(old_weights, self.weights):
+            if idx > self._max_iter or np.allclose(old_weights, self.approx_func.parameters):
                 if idx > self._max_iter:
                     logger.info("Stopping early due to exceeds max number of iterations")
                 else:
@@ -77,7 +78,7 @@ class SGD(Optimizer):
 
     def __init__(self,
                  func=None,
-                 approx_func=None
+                 approx_func=None,
                  gradient=None,
                  learning_rate=0.0001):
         super(SGD, self).__init__(func, approx_func, gradient, learning_rate)
@@ -100,7 +101,8 @@ class SGD(Optimizer):
 
         aggregate_grad /= y.size
 
-        self.approx_func.parameters -= self._learning_rate * aggregate_grad
+        self.approx_func.parameters = np.subtract(self.approx_func.parameters,
+                                                  self._learning_rate * aggregate_grad)
 
 class ASSGD(Optimizer):
     """Accelerated Stochastic Gradient class - similar to SGD but uses
@@ -133,7 +135,7 @@ class ASSGD(Optimizer):
         aggregate_grad = 0
 
         for i in range(y.size):
-            y_hat = self.approx_func(x_vals[i, :])
+            y_hat = self.approx_func.evaluate(x_vals[i, :])
             diff = y_hat - y[i]
 
             # Check diff and update learning rate if necessary
@@ -147,7 +149,8 @@ class ASSGD(Optimizer):
 
         aggregate_grad /= y.size
 
-        self.approx_func.parameters -= self._learning_rate * aggregate_grad
+        self.approx_func.parameters = np.subtract(self.approx_func.parameters,
+                                                  self._learning_rate * aggregate_grad)
 
 class SRGD(Optimizer):
     """Stochastic Repeated Gradient Descent using adaptive step-size"""
@@ -188,7 +191,7 @@ class SRGD(Optimizer):
 
         for _ in range(self._repeat_num):
             for i in range(y.size):
-                y_hat = self.approx_func(x_vals[i, :])
+                y_hat = self.approx_func.evaluate(x_vals[i, :])
                 diff = y_hat - y[i]
 
                 # Check diff and update learning rate if necessary
@@ -202,4 +205,5 @@ class SRGD(Optimizer):
 
             aggregate_grad /= y.size
 
-            self.approx_func.parameters -= aggregate_grad * self._learning_rate
+            self.approx_func.parameters = np.subtract(self.approx_func.parameters,
+                                                      aggregate_grad * self._learning_rate)
