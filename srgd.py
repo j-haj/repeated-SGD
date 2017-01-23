@@ -4,8 +4,8 @@ import yaml
 import os
 import numpy as np
 import datetime
-from function import LinearFunction
-from optimizers import SGD, ASSGD, SRGD
+from core.function.function import LinearFunction
+from core.optimizers.optimizers import SGD, ASSGD, SRGD
 
 # Setup logging
 with open("logging.yaml", "r") as fd:

@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from function import *
+from ..function.function import LinearFunction, Function
 
 logger = logging.getLogger()
 
