@@ -46,7 +46,7 @@ class Optimizer:
               labels,
               num_epochs=None,
               batch_size=1,
-              early_stop=1e-12):
+              early_stop=1e-9):
         """Solves for the weights that minimize there loss functoin
 
         Parameters:
@@ -225,9 +225,9 @@ class SRGD(Optimizer):
 
         x_vals = data[:, :-1]
         y = data[:, -1]
-        aggregate_grad = 0
 
         for _ in range(self._repeat_num):
+            aggregate_grad = 0
             for i in range(y.size):
                 y_hat = self.approx_func.evaluate(x_vals[i, :])
                 diff = y_hat - y[i]

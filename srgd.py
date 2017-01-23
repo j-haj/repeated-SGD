@@ -4,8 +4,10 @@ import yaml
 import os
 import numpy as np
 import datetime
+import time
 from core.function.function import LinearFunction
 from core.optimizers.optimizers import SGD, ASSGD, SRGD
+from sklearn import preprocessing
 
 # Setup logging
 with open("logging.yaml", "r") as fd:
@@ -35,13 +37,13 @@ class Timer:
         self.end = time.clock()
         self.interval = self.end - self.start
 
-def create_coefficients(n_dim, min_val=-100, max_val=101):
+def create_coefficients(n_dim, min_val=-10, max_val=11):
     """Returns a numpy array of size n_dim with randomly
     generated coefficients on the interval [min_val, max_val)
     """
     return np.random.randint(min_val, max_val, n_dim)
 
-def generate_labeled_data(n_data, func, x_min=-1000, x_max=1000):
+def generate_labeled_data(n_data, func, x_min=-10, x_max=10):
     labels = np.zeros(n_data)
     data = np.zeros((n_data, func.parameters.size))
     for i in range(n_data):
@@ -51,6 +53,18 @@ def generate_labeled_data(n_data, func, x_min=-1000, x_max=1000):
         data[i] = x_data
     return (data, labels)
 
+def scale_data(data):
+    """Normalizes data by applying the following transform:
+
+        z = (x - mean)/std_dev
+
+    Parameters:
+        data: data to be normalized
+
+    Return: normalized data
+    """
+    return preprocessing.scale(data)
+
 def get_gradient(diff, x_vals):
     """Gradient for linear function and square loss"""
     logger.debug("diff: {} - x_vals: {}".format(diff, x_vals))
@@ -59,20 +73,19 @@ def get_gradient(diff, x_vals):
 def main():
     """Main function"""
     # array of problem sizes 
-    dimension = 5
+    dimension = 25
     n_data = dimension*1000
     mini_batch_sizes = [1, 10, 20, 50]
     logger.info("Test dimension: {}".format(dimension))
     logger.info("Number of data points: {}".format(n_data))
 
-    # Create coefficients and true func
-    logger.info("Creating coefficients and true function")
+    # Create coefficients and true func logger.info("Creating coefficients and true function")
     coefficients = create_coefficients(dimension)
     logger.info("Created coefficients: {}".format(coefficients))
     test_func = LinearFunction(dim=dimension, parameters=coefficients)
     x_vals, labels = generate_labeled_data(n_data,
                                            test_func)
-    
+
     # Approx functions
     logger.info("Creating approximate linear function objects")
     approx_f_sgd = LinearFunction(dim=dimension)
@@ -82,23 +95,28 @@ def main():
 
     # Initialize optimizers
     logger.info("Initializing optimizer objects")
+    learning_rate = 0.001
+    batch_size = 20
     sgd = SGD(func=test_func,
             approx_func=approx_f_sgd,
             gradient=get_gradient,
-            learning_rate=0.000001)
+            learning_rate=learning_rate)
     assgd = ASSGD(func=test_func,
             approx_func=approx_f_assgd,
             gradient=get_gradient,
-            learning_rate=0.000001)
+            threshold=0.001,
+            learning_rate=learning_rate)
     srgd = SRGD(func=test_func,
             approx_func=approx_f_srgd,
             gradient=get_gradient,
-            learning_rate=0.00001)
+            learning_rate=learning_rate,
+            repeat_num=2)
     assrgd = SRGD(func=test_func,
             approx_func=approx_f_assrgd,
             gradient=get_gradient,
-            threshold=0.01,
-            learning_rate=0.00001)
+            threshold=0.001,
+            learning_rate=learning_rate,
+            repeat_num=2)
 
     sgd.set_log_rate(500)
     assgd.set_log_rate(500)
@@ -106,18 +124,25 @@ def main():
     assrgd.set_log_rate(500)
 
     logger.info("Initialization complete - beginning tests...")
-    
-    sgd_step_count = sgd.solve(x_vals, labels, n_data)
-    logger.info("SGD solved coefficients in {} steps: {}".format(sgd_step_count,
-                                                                 sgd.approx_func.parameters))
-    assgd_step_count = assgd.solve(x_vals, labels, n_data)
-    logger.info("ASSGD solved coefficients in {} steps: {}".format(assgd_step_count,
-                                                                   assgd.approx_func.parameters))
-    srgd_step_count = srgd.solve(x_vals, labels, n_data)
-    logger.info("SRGD solved coefficients in {} steps: {}".format(srgd_step_count,
-                                                                  srgd.approx_func.parameters))
-    assrgd_step_count = assrgd.solve(x_vals, labels, n_data)
-    logger.info("ASSGRD solved coefficients in {} steps: {}".format(assrgd_step_count,
+    with Timer() as t: 
+        sgd_step_count = sgd.solve(x_vals, labels, n_data, batch_size=batch_size)
+    logger.info("SGD solved coefficients in {:,} steps, {} seconds: {}".format(sgd_step_count,
+                                                                t.interval,
+                                                                sgd.approx_func.parameters))
+    with Timer() as t:
+        assgd_step_count = assgd.solve(x_vals, labels, n_data, batch_size=batch_size)
+    logger.info("ASSGD solved coefficients in {:,} steps, {} seconds: {}".format(assgd_step_count,
+                                                            t.interval,
+                                                            assgd.approx_func.parameters))
+    with Timer() as t:
+        srgd_step_count = srgd.solve(x_vals, labels, n_data, batch_size=batch_size)
+    logger.info("SRGD solved coefficients in {:,} steps, {} seconds: {}".format(srgd_step_count,
+                                                            t.interval,
+                                                            srgd.approx_func.parameters))
+    with Timer() as t:
+        assrgd_step_count = assrgd.solve(x_vals, labels, n_data, batch_size=batch_size)
+    logger.info("ASSGRD solved coefficients in {:,} steps, {} seconds: {}".format(assrgd_step_count,
+                                                        t.interval,
                                                         assrgd.approx_func.parameters))
 
 if __name__ == "__main__":
