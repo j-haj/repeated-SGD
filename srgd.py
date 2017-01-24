@@ -73,7 +73,7 @@ def get_gradient(diff, x_vals):
 def main():
     """Main function"""
     # array of problem sizes 
-    dimension = 25
+    dimension = 50
     n_data = dimension*1000
     mini_batch_sizes = [1, 10, 20, 50]
     logger.info("Test dimension: {}".format(dimension))
@@ -95,8 +95,9 @@ def main():
 
     # Initialize optimizers
     logger.info("Initializing optimizer objects")
-    learning_rate = 0.001
-    batch_size = 20
+    learning_rate = 0.01
+    batch_size = 1000
+    repeat_num = 3
     sgd = SGD(func=test_func,
             approx_func=approx_f_sgd,
             gradient=get_gradient,
@@ -110,13 +111,13 @@ def main():
             approx_func=approx_f_srgd,
             gradient=get_gradient,
             learning_rate=learning_rate,
-            repeat_num=2)
+            repeat_num=repeat_num)
     assrgd = SRGD(func=test_func,
             approx_func=approx_f_assrgd,
             gradient=get_gradient,
             threshold=0.001,
             learning_rate=learning_rate,
-            repeat_num=2)
+            repeat_num=repeat_num)
 
     sgd.set_log_rate(500)
     assgd.set_log_rate(500)
@@ -125,25 +126,45 @@ def main():
 
     logger.info("Initialization complete - beginning tests...")
     with Timer() as t: 
-        sgd_step_count = sgd.solve(x_vals, labels, n_data, batch_size=batch_size)
-    logger.info("SGD solved coefficients in {:,} steps, {} seconds: {}".format(sgd_step_count,
-                                                                t.interval,
-                                                                sgd.approx_func.parameters))
+        sgd_step_count = sgd.solve(data=x_vals,
+                                   labels=labels,
+                                   num_epochs=n_data//batch_size,
+                                   batch_size=batch_size)
+    logger.info(("SGD solved coefficients in {:,} steps, {:.5f} seconds, with "
+        "{:.8f} normed error").format(sgd_step_count,
+                                    t.interval,
+                                    np.linalg.norm(sgd.approx_func.parameters\
+                                        - sgd.function.parameters)))
     with Timer() as t:
-        assgd_step_count = assgd.solve(x_vals, labels, n_data, batch_size=batch_size)
-    logger.info("ASSGD solved coefficients in {:,} steps, {} seconds: {}".format(assgd_step_count,
-                                                            t.interval,
-                                                            assgd.approx_func.parameters))
+        assgd_step_count = assgd.solve(data=x_vals,
+                                       labels=labels,
+                                       num_epochs=n_data//batch_size,
+                                       batch_size=batch_size)
+    logger.info(("ASSGD solved coefficients in {:,} steps, {:.5f} seconds, with "
+        "{:.8f} normed error").format(assgd_step_count,
+                                    t.interval,
+                                    np.linalg.norm(assgd.approx_func.parameters\
+                                        - assgd.function.parameters)))
     with Timer() as t:
-        srgd_step_count = srgd.solve(x_vals, labels, n_data, batch_size=batch_size)
-    logger.info("SRGD solved coefficients in {:,} steps, {} seconds: {}".format(srgd_step_count,
-                                                            t.interval,
-                                                            srgd.approx_func.parameters))
+        srgd_step_count = srgd.solve(data=x_vals,
+                                     labels=labels,
+                                     num_epochs=n_data//batch_size,
+                                     batch_size=batch_size)
+    logger.info(("SRGD solved coefficients in {:,} steps, {:.5f} seconds, with "
+        "{:.8f} normed error").format(srgd_step_count,
+                                    t.interval,
+                                    np.linalg.norm(srgd.approx_func.parameters\
+                                        - srgd.function.parameters)))
     with Timer() as t:
-        assrgd_step_count = assrgd.solve(x_vals, labels, n_data, batch_size=batch_size)
-    logger.info("ASSGRD solved coefficients in {:,} steps, {} seconds: {}".format(assrgd_step_count,
-                                                        t.interval,
-                                                        assrgd.approx_func.parameters))
+        assrgd_step_count = assrgd.solve(data=x_vals,
+                                         labels=labels,
+                                         num_epochs=n_data//batch_size,
+                                         batch_size=batch_size)
+    logger.info(("ASSGRD solved coefficients in {:,} steps, {:.5f} seconds, with "
+        "{:.8f} normed error").format(assrgd_step_count,
+                                    t.interval,
+                                    np.linalg.norm(assrgd.approx_func.parameters\
+                                        - assrgd.function.parameters)))
 
 if __name__ == "__main__":
     main()

@@ -60,16 +60,17 @@ class Optimizer:
         """
 
         old_weights = np.array([100 for _ in range(data[0, :].size)])
-        logger.info("Using mini-batch of size {}".format(data.shape[0]))
+        logger.info("Using mini-batch of size {}".format(batch_size))
         idx = 0
         for epoch_num in range(num_epochs):
 
-            if idx > self._max_iter or np.linalg.norm(np.subtract(old_weights,
-                                                      self.approx_func.parameters)) < early_stop:
+            if idx > self._max_iter or np.allclose(old_weights,
+                                                   self.approx_func.parameters,
+                                                   early_stop):
                 if idx > self._max_iter:
                     logger.info("Stopping early due to exceeds max number of iterations")
                 else:
-                    logger.info("Stopping early due to slowed convergence")
+                    logger.info("Stopping early due to tail convergence")
                 break
 
             # Get batch
@@ -78,7 +79,8 @@ class Optimizer:
                                              batch_size)
             mini_batch = np.concatenate((data, labels.reshape(labels.size, 1)),
                                         axis=1)[batch_indices]
-
+            logger.debug("Created mini-batch of shape\
+                    {}".format(mini_batch.shape))
             # Run weight update
             if idx > 0:
                 tail_diff = np.subtract(old_weights, self.approx_func.parameters)
@@ -130,8 +132,8 @@ class SGD(Optimizer):
 
         aggregate_grad /= y.size
 
-        self.approx_func.parameters = np.subtract(self.approx_func.parameters,
-                                                  self._learning_rate * aggregate_grad)
+        self.approx_func.parameters = self.approx_func.parameters - \
+                                                  self._learning_rate * aggregate_grad
         return 1
 
 class ASSGD(Optimizer):
@@ -166,27 +168,27 @@ class ASSGD(Optimizer):
         x_vals = data[:, :-1]
         y = data[:, -1]
         aggregate_grad = 0
+        old_weights = self.approx_func.parameters
         
         for i in range(y.size):
             y_hat = self.approx_func.evaluate(x_vals[i, :])
             diff = y_hat - y[i]
 
-            # Check diff and update learning rate if necessary
-            if np.linalg.norm(np.subtract(self.approx_func.parameters,
-                                          self.function.parameters)) < self._threshold:
-                self._learning_rate *= self._step_factor
-                self._threshold *= self._threshold_step
-
-                logger.debug(("Difference in y_hat values below threshold - "
-                        "decreasing the step-size by a factor of {} to {}").format(
-                            self._learning_rate, self._step_factor))
-
             aggregate_grad += self.gradient(diff, x_vals[i, :])
 
         aggregate_grad /= y.size
 
-        self.approx_func.parameters = np.subtract(self.approx_func.parameters,
-                                                  self._learning_rate * aggregate_grad)
+        self.approx_func.parameters = self.approx_func.parameters - \
+                                                  self._learning_rate * aggregate_grad
+        # Check diff and update learning rate if necessary
+        if np.allclose(self.approx_func.parameters,
+                       old_weights, self._threshold):
+            self._learning_rate *= self._step_factor
+            self._threshold *= self._threshold_step
+
+            logger.debug(("Difference in y_hat values below threshold - "
+                    "decreasing the step-size by a factor of {} to {}").format(
+                        self._learning_rate, self._step_factor))
         return 1
 
 class SRGD(Optimizer):
@@ -197,6 +199,7 @@ class SRGD(Optimizer):
                  approx_func=None,
                  gradient=None,
                  threshold=0,
+                 threshold_step=0.1,
                  step_factor=0.5,
                  learning_rate=0.001,
                  repeat_num=10):
@@ -214,17 +217,18 @@ class SRGD(Optimizer):
                            this value will geometrically decrease over time
             repeat_num: number of iterations the weights are updated each time
         """
-        super(SRGD, self).__init__(func, approx_func, gradient, learning_rate)
+        super(SRGD, self).__init__(func, approx_func, gradient, learning_rate*2)
         self._threshold = threshold
         self._step_factor = step_factor
+        self._threshold_step = threshold_step
         self._repeat_num = repeat_num
-        self._learning_rate /= repeat_num
 
     def update_weights(self, data):
         """ Runs SRGD update on the weight self.repeat_num of times"""
 
         x_vals = data[:, :-1]
         y = data[:, -1]
+        old_weights = self.approx_func.parameters
 
         for _ in range(self._repeat_num):
             aggregate_grad = 0
@@ -232,18 +236,21 @@ class SRGD(Optimizer):
                 y_hat = self.approx_func.evaluate(x_vals[i, :])
                 diff = y_hat - y[i]
 
-                # Check diff and update learning rate if necessary
-                if abs(diff) < self._threshold:
-                    self._learning_rate *= self._step_factor
-                    logger.debug(("Difference in y_hat values below threshold - "
-                            "decreasing the step-size by a factor of {} to {}").format(
-                                self._learning_rate, self._step_factor))
-
                 aggregate_grad += self.gradient(diff, x_vals[i, :])
 
             aggregate_grad /= y.size
 
-            self.approx_func.parameters = np.subtract(self.approx_func.parameters,
-                                                      aggregate_grad * self._learning_rate)
+            self.approx_func.parameters = self.approx_func.parameters - \
+                                                      aggregate_grad * self._learning_rate
 
+        # Check diff and update learning rate if necessary
+        if self._threshold > 0 and \
+           np.allclose(self.approx_func.parameters,
+                       old_weights, self._threshold):
+            self._learning_rate *= self._step_factor
+            self._threshold *= self._threshold_step
+
+            logger.debug(("Difference in y_hat values below threshold - "
+                    "decreasing the step-size by a factor of {} to {}").format(
+                        self._learning_rate, self._step_factor))
         return self._repeat_num
