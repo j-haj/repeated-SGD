@@ -1,9 +1,12 @@
+# OS X
+*.DS_Store
+
 # log files
 *.log
 
 # Python
 __pycache__/*
-*__pycache__
+*__pycache__/*
 
 # Latex
 *.out
