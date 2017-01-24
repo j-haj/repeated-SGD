@@ -173,7 +173,9 @@
 
 % *** MATH PACKAGES ***
 %
-%\usepackage{amsmath}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
 % A popular package from the American Mathematical Society that provides
 % many useful and powerful commands for dealing with mathematics.
 %
@@ -191,7 +193,7 @@
 
 % *** SPECIALIZED LIST PACKAGES ***
 %
-%\usepackage{algorithmic}
+\usepackage{algorithmic}
 % algorithmic.sty was written by Peter Williams and Rogerio Brito.
 % This package provides an algorithmic environment fo describing algorithms.
 % You can use the algorithmic environment in-text or within a figure
@@ -334,28 +336,17 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Bare Demo of IEEEtran.cls for\\ IEEE Computer Society Conferences}
+\title{Stochastic Repeated Gradient Descent (SRGD)}
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
-\and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678-2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\author{\IEEEauthorblockN{Jeff Hajewski}
+\IEEEauthorblockA{College of Arts and Sciences\\
+University of Iowa\\
+Iowa City, Iowa\\
+Email: jeffrey-hajewski@uiowa.edu}}
 
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
@@ -396,7 +387,11 @@ Fax: (888) 555--1212}}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-The abstract goes here.
+    Stochastic Repeated Gradient Descent (SRGD) is a derivative of mini-batched
+    SGD that performs multiple parameter updates for a given mini-batch within a
+    single training epoch. This approach results in dramatic speedups for
+    training large datasets without loss to accuracy. Additionally, even faster
+    results were achieved using an adaptive step-size suggested by [ref-here].
 \end{abstract}
 
 % no keywords
@@ -418,25 +413,135 @@ The abstract goes here.
 
 \section{Introduction}
 % no \IEEEPARstart
-This demo file is intended to serve as a ``starter file''
-for IEEE Computer Society conference papers produced under \LaTeX\ using
-IEEEtran.cls version 1.8b and later.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
-I wish you the best of success.
+We introduce Stochastic Repeated Gradient Descent(SRGD), a modification to
+Stochastic Gradient Descent that takes advantage of CPU cache to improve compute
+time and allow the use of large mini-batches, resulting in dramatically faster
+time to convergence versus mini-batch SGD. 
 
-\hfill mds
- 
-\hfill August 26, 2015
+Stochastic Gradient Descent (SGD) has long been the standard optimization method
+in machine learning. Recent developments such as Adam and AdaGrad solve some of
+the shortcomings of SGD by using adaptive learning rates and scaled gradients.
+While these methods have seen substantial success, they can suffer from increased
+storage requirements, which is problematic for large problems. Additionally,
+they can be more challenging to implement, as the algorithms are more complex
+than standard SGD. Stochastic Repeated Gradient Descent achieves dramatic gains
+in compute time by taking advantage of CPU cache and allowing the use of larger
+mini-batch sizes without degrading convergence results. Further, for the
+mini-batch case of a single data point, SRGD reduces to standard SRGD, with a
+marginally slower compute time. If SRGD is given an adaptive learning rate, such
+as that proposed by Yang et. al. [ref-here], performance is consistently better
+across the board.
 
-\subsection{Subsection Heading Here}
-Subsection text here.
+\subsection{Background}
+Formally, we are solving the problem
+
+\begin{equation}\label{eq:update}
+    \theta = \arg \min_{\theta} \sum_{i=1}^n ||f(x_i; \theta) - y_i||_2^2
+\end{equation}
+
+where we have $n$ number of data points, $x_i \in \mathbb{R}^d$ and
+corresponding labels $y_i \in \mathbb{R}$, and $f: \mathbb{R}^d \rightarrow
+\mathbb{R}$. We assume $f(x)$ is a linear function given by~\ref{eq:f}
+
+\begin{equation}\label{eq:f}
+    f(x; \theta) = \sum_{i = 1}^d \theta_i x_i
+\end{equation}
 
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+\subsubsection{Stochastic Gradient Descent}
+Stochastic Gradient Descent is a derivative of Gradient Descent where the
+gradient $\nabla f(x)$ is replaced by $\nabla f_i(x)$, an approximation of the
+gradient calculated by computing the gradient at a randomly selected point,
+determined by uniformly sampling (without replacement) over the data set. The
+parameter update is then performed via the stand update~\ref{eq:sgd}
 
+\begin{equation}\label{eq:sgd}
+    \theta_{k+1} \gets \theta_k - \alpha \nabla f_i(x)
+\end{equation}
 
+However, this approach has a couple of drawbacks. The main drawback is due to an
+increased variance in the approximate gradient from calculating the gradient at
+only a single point. This results in slowing the rate of convergence when
+compared to Gradient Descent. A number of approaches attempt to reduce this
+variance [refs-here], but the simplest and most common approach to reduce the
+variance is mini-batching.
+
+\subsubsection{Mini-Batch SGD}
+Mini-batch SGD randomly samples some pre-determined number of points (say $b$
+points, and without loss of generality let $m = \frac{n}{b}$, such that $b$ is a
+multiple of the number of points) from a uniform distribution of the data,
+without replacement. This mini-batch is used to attain a better (more stable)
+approximation of the approximate gradient, which is then used in the weight
+update~\ref{eq:update}.
+
+\subsection{Stochastic Repeated Gradient Descent}
+SRGD improves upon mini-batch SGD by using recently cached data to perform
+several updates of the weights via~\ref{eq:update} before sampling new data. By
+not sampling new data at each update, the mini-batch data remains in cache.
+While this increases the variance in the theoretical convergence of our method,
+the compute time is dramatially reduced. Additionally, we use a dynamic learning
+rate, which is geometrically decreased by a factor of $0.5$ when successive
+weight updates are within some threshold value $\epsilon$ of eachother.
+
+\section{Algorithm}
+Algorithm 1 details the SRGD algorithm. Additionally, we check for convergence
+and stop early if convergence as been achieved. The key step is repeating with
+weight update $r$ times using the same mini-batch data. This results in $r$
+approximate gradient computations along with $r$ weight updates. After the
+weights are updated, we check to see how close they are to the prior weights and
+if they are close enough (i.e., convergence is slowing down), we decrease the
+learning rate. This approach allows us to start out with a coarser learning rate
+while avoiding over-shooting the minimum.
+
+\begin{figure}
+    \textbf{Algorithm 1}
+    \label{fig:algorithm}
+    \begin{algorithmic}[1]
+    \REQUIRE $r \geq 1$ and $b \geq 1$ 
+    \FOR {$i=0$ to $\frac{n}{b}$}
+        \STATE $x \gets x_{I_i}$
+        \FOR {$j=0$ to $r$}
+            \STATE $\theta_{k+1} \gets \theta_k - \alpha \nabla f(x)$
+        \ENDFOR
+        \IF {$||\theta_k - \theta_{k-1}|| < \epsilon$}
+            \STATE $\alpha \gets \frac{\alpha}{2}$
+        \ENDIF
+    \ENDFOR
+    \end{algorithmic}
+\end{figure}
+\section{Theory}
+
+\section{Experiment}
+Experiments were performed on a 3.4GHz Intel i7-6700K hexa-core workstation with 64GB
+of RAM. In addition to measuring the time to convergence, we also measure the
+number of steps taken to converge to the solution (where a step is considered a
+weight update).
+
+\subsection{Problem Definition}
+The labeled data is generated via the function shown in
+equation~\ref{eq:generator},
+
+\begin{equation}\label{eq:generator}
+    y(x;\omega) = \sum_{i=1}^d \omega_i x_i
+\end{equation}
+
+where $\omega \in [0, 10]$ and $x \in [-10, 10]$. While this is a small problem,
+it is easy to control and measure approximation error (since we know the
+coefficients exactly. The coefficients, $\omega$, are sample from the
+distribution $U(0, 10)$ while the $x$ values are generated by sample $x_i$ (the
+i-th component of a given $x$) from the distribution $U(-10,10)$.
+
+\subsection{Methodology}
+We look at severl metrics in assessing the validity and performance of SRGD. The
+first metric is run time. This is simply the time it takes for comparably tuned
+algorithms to converge to the solution. Our experiments consider four
+algorithms: SGD, ASSGD, SRGD, ASSRGD. The ASSGD algorithm proposed by Yang et
+al. [ref-here] is the adaptive learning rate algorithm mentioned in the
+preceding section. The SRGD runs do not use the adpative learning rate while
+the ASSRGD runs do use an adaptive learning rate.
+
+\subsection{Results}
+Here are the results!
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
 % For figures, \caption should occur after the \includegraphics.
