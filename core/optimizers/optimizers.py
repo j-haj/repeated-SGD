@@ -23,11 +23,15 @@ class Optimizer:
         self.approx_func = approx_func
         self.gradient = gradient
         self._learning_rate = learning_rate
-        self.training_error = []
-        self.tail_error = []
-
+        self.errors = []
         self._max_iter = 100000
         self.log_rate = 0
+
+    def get_error():
+        """Returns a dictionary containing the norm error and max error"""
+        norm_error = np.linalg.norm(self._true_coeff - self.approx_func.parameters)
+        max_error = max(np.abs(self._true_coeff - self.approx_func.parameters))
+        return {"norm": norm_error, "max": max_error}
 
     def update_weights(self, data):
         """Interface method - should be implemented in subclasses"""
@@ -62,6 +66,7 @@ class Optimizer:
         old_weights = np.array([100 for _ in range(data[0, :].size)])
         logger.info("Using mini-batch of size {}".format(batch_size))
         idx = 0
+        epoch_idx = 0
         for epoch_num in range(num_epochs):
 
             if idx > self._max_iter or np.allclose(old_weights,
@@ -101,8 +106,10 @@ class Optimizer:
 
             old_weights = self.approx_func.parameters
             idx += self.update_weights(mini_batch)
+            epoch_idx += 1
+            self.errors.append(idx, self.get_error())
 
-        return idx
+        return (idx, epoch_idx, self.errors)
 
 class SGD(Optimizer):
     """Stochastic Gradient Descent optimizer."""

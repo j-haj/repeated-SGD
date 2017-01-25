@@ -70,6 +70,101 @@ def get_gradient(diff, x_vals):
     logger.debug("diff: {} - x_vals: {}".format(diff, x_vals))
     return diff * x_vals
 
+def run_experiment():
+    """Run experiment to collect results for paper"""
+    # Create results dictionary
+    results = {"sgd": [], "assgd": [], "srgd": [], "assrgd": []}
+
+    # Create step size array and dimension step array
+    dimension_steps = [50, 100, 500, 1000, 10000]
+    mini_batch_sizes = []
+    data_size_factor = 1000 # Number of data points based on problem dimension
+    learning_rate = 0.01
+
+    for dim in dimension_steps:
+        dim /= 10
+        steps = [1]
+        for i in range(1,11):
+            steps.append(dim * .01 * i)
+        mini_batch_sizes.append(steps)
+
+    r_factors = [i for i in range(1, 11)]
+
+    # Run tests
+    num_tests = 10
+    for i in range(num_tests):
+        logger.info("Test iteration {}".format(i))
+
+        # Iterate over various problem sizes
+        for idx, dim in enumerate(dimension_steps):
+            # Create coefficients
+            coefficients = create_coefficients(dim)
+            test_func = LinearFunction(dim=dim, parameters=coefficients)
+            n_data = dim * data_size_factor
+            x_vals, labels = generate_labeled_data(n_data,
+                                                   test_func)
+            logger.info("Parameters, test function, and data generated")
+
+            # Iterate over mini batch sizes
+            for batch_size in mini_batch_sizes[idx]:
+                logger.info("Running mini_batch size {}".format(batch_size))
+                # Iterate over repetition factors
+                for r in r_factors:
+                    logger.info("Using r = {}".format(r))
+                    # Create approx functions
+                    logger.info("Creating approximate funtions")
+                    approx_f_sgd = LinearFunction(dim=dim)
+                    approx_f_assgd = LinearFunction(dim=dim)
+                    approx_f_srgd = LinearFunction(dim=dim)
+                    approx_f_assrgd = LinearFunction(dim=dim)
+                    logger.info("Approximate functions created")
+
+                    # Create optimization instances
+                    sgd = SGD(func=test_func,
+                              approx_func=approx_f_sgd,
+                              gradient=get_gradient,
+                              learning_rate=learning_rate)
+
+                    assgd = ASSGD(func=test_func,
+                                  approx_func=approx_f_assgd,
+                                  gradient=get_gradient,
+                                  threshold=0.01,
+                                  learning_rate=learning_rate)
+
+                    srgd = SRGD(func=test_func,
+                                approx_func=approx_f_srgd,
+                                gradient=get_gradient,
+                                learning_rate=learning_rate,
+                                repeat_num=r)
+
+                    assrgd = SRGD(func=test_func,
+                                  approx_func=approx_f_assrgd,
+                                  gradient=get_gradient,
+                                  threshold=0.01,
+                                  learning_rate=learning_rate,
+                                  repeat_num=r)
+                    optimizers = {"sgd": sgd, "assgd": assgd, "srgd": srgd, "assrgd": assrgd}
+                    logger.info("Optimizers successfully created")
+
+                    # Solve problem and collect errors
+                    for key in results:
+                        o = optimizers[key]
+                        with Timer() as t:
+                            (n_iter, n_epoch, errors) = o.solve(
+                                data=x_vals,
+                                labels=labels,
+                                num_epochs=n_data//batch_size,
+                                batch_size=batch_size)
+                        test_res = {"n_iter": n_iter,
+                                    "n_epoch": n_epoch,
+                                    "error": errors,
+                                    "time": t.interval,
+                                    "batch_size": batch_size,
+                                    "dimension": dim,
+                                    "r": r}
+                        results[key].append(test_res)
+    return results
+
 def main():
     """Main function"""
     # array of problem sizes 
@@ -167,4 +262,14 @@ def main():
                                         - assrgd.function.parameters)))
 
 if __name__ == "__main__":
-    main()
+    #main()
+    logger.info("Running experiment")
+    result = run_experiment()
+    logger.info("Experiment Complete!")
+    results_filename = "experiment_results.yaml"
+
+    # Write results to file
+    logger.info("Writing results to file")
+    with open(results_filename, 'w') as out_file:
+        yaml.dump(results, out_file, default_flow_style=True)
+    logger.info("Finished.")
