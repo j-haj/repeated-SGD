@@ -128,7 +128,7 @@ def run_experiment():
                     assgd = ASSGD(func=test_func,
                                   approx_func=approx_f_assgd,
                                   gradient=get_gradient,
-                                  threshold=0.01,
+                                  threshold=0.001,
                                   learning_rate=learning_rate)
 
                     srgd = SRGD(func=test_func,
@@ -140,7 +140,7 @@ def run_experiment():
                     assrgd = SRGD(func=test_func,
                                   approx_func=approx_f_assrgd,
                                   gradient=get_gradient,
-                                  threshold=0.01,
+                                  threshold=0.001,
                                   learning_rate=learning_rate,
                                   repeat_num=r)
                     optimizers = {"sgd": sgd, "assgd": assgd, "srgd": srgd, "assrgd": assrgd}

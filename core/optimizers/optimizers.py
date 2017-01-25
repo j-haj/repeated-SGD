@@ -23,6 +23,8 @@ class Optimizer:
         self.approx_func = approx_func
         self.gradient = gradient
         self._learning_rate = learning_rate
+        self.training_error = []
+        self.tail_error = []
         self.errors = []
         self._max_iter = 100000
         self.log_rate = 0
