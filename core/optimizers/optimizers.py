@@ -107,7 +107,7 @@ class Optimizer:
             old_weights = self.approx_func.parameters
             idx += self.update_weights(mini_batch)
             epoch_idx += 1
-            self.errors.append(idx, self.get_error())
+            self.errors.append((idx, self.get_error()))
 
         return (idx, epoch_idx, self.errors)
 
