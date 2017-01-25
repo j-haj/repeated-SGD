@@ -27,7 +27,7 @@ class Optimizer:
         self._max_iter = 100000
         self.log_rate = 0
 
-    def get_error():
+    def get_error(self):
         """Returns a dictionary containing the norm error and max error"""
         norm_error = np.linalg.norm(self._true_coeff - self.approx_func.parameters)
         max_error = max(np.abs(self._true_coeff - self.approx_func.parameters))
