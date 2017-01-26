@@ -130,12 +130,12 @@
 % *** GRAPHICS RELATED PACKAGES ***
 %
 \ifCLASSINFOpdf
-  % \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{graphicx}
   % declare the path(s) where your graphic files are
-  % \graphicspath{{../pdf/}{../jpeg/}}
+  \graphicspath{{./img/}}
   % and their extensions so you won't have to specify these with
   % every instance of \includegraphics
-  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
 \else
   % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
   % will default to the driver specified in the system graphics.cfg if no
@@ -260,6 +260,7 @@
 
 % *** FLOAT PACKAGES ***
 %
+\usepackage{multirow}
 %\usepackage{fixltx2e}
 % fixltx2e, the successor to the earlier fix2col.sty, was written by
 % Frank Mittelbach and David Carlisle. This package corrects a few problems
@@ -491,7 +492,10 @@ approximate gradient computations along with $r$ weight updates. After the
 weights are updated, we check to see how close they are to the prior weights and
 if they are close enough (i.e., convergence is slowing down), we decrease the
 learning rate. This approach allows us to start out with a coarser learning rate
-while avoiding over-shooting the minimum.
+while avoiding over-shooting the minimum. By default, SRGD doubles the input
+learning rate to make it even coarser. In the dynamic version, of
+course this is offset by dynamically updating the learning rate based on
+rate of convergence (measured by the distance between prior weight updates).
 
 \begin{figure}
     \textbf{Algorithm 1}
@@ -540,8 +544,98 @@ al. [ref-here] is the adaptive learning rate algorithm mentioned in the
 preceding section. The SRGD runs do not use the adpative learning rate while
 the ASSRGD runs do use an adaptive learning rate.
 
+Table [REF HERE] shows the parameters of the runs we performed. Most importantly,
+we tested our methodology for parameters spaces of dimension 10, 50, and 1000.
+
 \subsection{Results}
-Here are the results!
+Based on our experiments there appear to be two domains in which SRGD is
+optimal. In one domain, typically as the mini-batch size approaches the
+problem size, SRGD takes more compute time achieves materially better
+accuracy. In the other domain, SRGD runs at a fraction of the time of
+SGD and achieves better accuracy (frequently an order of magnitude better).
+
+\begin{table}[!t]
+% increase table row spacing, adjust to taste
+\renewcommand{\arraystretch}{1.3}
+\caption{Batch-Size of 1 in 50 Dimensions}
+\label{tab:d50mb1}
+\centering
+% Some packages, such as MDW tools, offer better commands for making tables
+% than the plain LaTeX2e tabular which is used here.
+\begin{tabular}{|c||c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Optimizer} &
+    \multicolumn{2}{c}{$r = 1$} &
+    \multicolumn{2}{c}{$r = 5$} &
+    \multicolumn{2}{c|}{$r = 10$}\\
+    & Error & Time & Error & Time & Error & Time \\
+    \hline
+    SGD & 0.0020 & 14.1 & 0.0020 & 14.1 & 0.0020 & 14.1\\
+    \hline
+    ASSGD & 0.4435 & 29.0 & 0.4435 & 29.0 & 0.4435 & 29.0\\ 
+    \hline
+    SRGD & 0.0001 & 9.8 & 0.0001 & 6.3 & 0.0000 & 6.3\\
+    \hline
+    ASSRGD & 0.0090 & 25.1 & 0.0009 & 7.9 & 0.0002 & 6.4\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+% increase table row spacing, adjust to taste
+\renewcommand{\arraystretch}{1.3}
+\caption{Batch-Size of 50 in 50 Dimensions}
+\label{tab:d50mb50}
+\centering
+% Some packages, such as MDW tools, offer better commands for making tables
+% than the plain LaTeX2e tabular which is used here.
+\begin{tabular}{|c||c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Optimizer} &
+    \multicolumn{2}{c}{$r = 1$} &
+    \multicolumn{2}{c}{$r = 5$} &
+    \multicolumn{2}{c|}{$r = 10$}\\
+    & Error & Time & Error & Time & Error & Time \\
+    \hline
+    SGD & 1.1893 & 4.9 & 1.1893 & 4.9 & 1.1893 & 4.9\\ 
+    \hline
+    ASSGD & 1.3576 & 5.0 & 1.3576 & 5.0 & 1.3576 & 5.0\\ 
+    \hline
+    SRGD & 0.084 & 5.0  & 0.0000 & 2.8 & 0.0000 & 1.7\\
+    \hline
+    ASSRGD & 0.0245 & 4.8 & 0.0001 & 3.3 & 0.0000 & 2.5\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=2.5in]{dim-10-batch-1}
+    \caption{Comparison of error as a function of compute time for a single
+    data point and a 10 dimensional parameter space.}
+    \label{fig:dim10}
+\end{figure}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=2.5in]{dim-10-batch-50}
+    \caption{Comparison of error as a function of compute time for a mini-batch
+    size of 50 points and a 10 dimensional parameter space.}
+    \label{fig:dim10}
+\end{figure}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=2.5in]{dim-50-batch-1}
+    \caption{Comparison of error as a function of compute time for a single data
+    point and a 50 dimensional parameter space.}
+    \label{fig:dim10}
+\end{figure}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=2.5in]{dim-50-batch-50}
+    \caption{Comparison of error as a function of compute time for a mini-batch
+        size of 50 points and a 50 dimensional parameter space.}
+    \label{fig:dim50}
+\end{figure}
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
 % For figures, \caption should occur after the \includegraphics.
@@ -639,9 +733,20 @@ Here are the results!
 
 
 
-\section{Conclusion}
-The conclusion goes here.
-
+\section{Future Work}
+There are two key next steps in assessing this mehtod. The first
+is to increase the compute time of the gradient. The reasoning behind
+this approach is to perform a cost-benefit analysis of cache and
+additional information versus additional compute time. In other words,
+there is likely a tipping point where the additional information gained
+by the repeated weight updates is offset by the time required to compute
+the gradient. Whereas standard SGD extracts less information from
+each data point per weight update than SRGD in a shorter period of time,
+SRGD extracts more information but requires more time to do this. For the
+results seen in this paper, that time tradeoff is offset by the additional
+information and the help of CPU cache for data access. However, one would
+expect there is a point where the additional time ultimately increases
+the total compute time of SRGD such that SGD is actually faster.
 
 
 
