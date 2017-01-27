@@ -1,0 +1,340 @@
+Summary for dim-50-batch-1.png
+Batch size: 1
+srgd - 1
+	avg time: 9.8298
+	avg norm: 0.0001
+	avg max: 0.0000
+srgd - 5
+	avg time: 6.2735
+	avg norm: 0.0001
+	avg max: 0.0000
+srgd - 10
+	avg time: 6.2046
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 25.0944
+	avg norm: 0.0268
+	avg max: 0.0090
+assrgd - 5
+	avg time: 7.8746
+	avg norm: 0.0024
+	avg max: 0.0009
+assrgd - 10
+	avg time: 6.4015
+	avg norm: 0.0008
+	avg max: 0.0002
+assgd
+	avg time: 28.9583
+	avg norm: 0.4435
+	avg max: 0.1376
+sgd
+	avg time: 14.1377
+	avg norm: 0.0020
+	avg max: 0.0007
+Summary for dim-50-batch-50.png
+Batch size: 50
+srgd - 1
+	avg time: 4.9993
+	avg norm: 0.0312
+	avg max: 0.0084
+srgd - 5
+	avg time: 2.8389
+	avg norm: 0.0000
+	avg max: 0.0000
+srgd - 10
+	avg time: 1.6738
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 4.8212
+	avg norm: 0.0970
+	avg max: 0.0245
+assrgd - 5
+	avg time: 3.2770
+	avg norm: 0.0003
+	avg max: 0.0001
+assrgd - 10
+	avg time: 2.4976
+	avg norm: 0.0000
+	avg max: 0.0000
+assgd
+	avg time: 5.0042
+	avg norm: 1.3576
+	avg max: 0.3111
+sgd
+	avg time: 4.9461
+	avg norm: 1.1893
+	avg max: 0.2711
+Summary for dim-50-batch-500.png
+Batch size: 500
+srgd - 1
+	avg time: 1.4054
+	avg norm: 22.2973
+	avg max: 4.8674
+srgd - 5
+	avg time: 2.0520
+	avg norm: 1.1864
+	avg max: 0.2792
+srgd - 10
+	avg time: 2.5355
+	avg norm: 0.0322
+	avg max: 0.0086
+assrgd - 1
+	avg time: 0.6457
+	avg norm: 22.2417
+	avg max: 4.9009
+assrgd - 5
+	avg time: 1.7326
+	avg norm: 1.1817
+	avg max: 0.2788
+assrgd - 10
+	avg time: 2.3129
+	avg norm: 0.0467
+	avg max: 0.0126
+assgd
+	avg time: 1.3897
+	avg norm: 32.1506
+	avg max: 6.9723
+sgd
+	avg time: 1.1341
+	avg norm: 32.1257
+	avg max: 6.9971
+Summary for dim-10-batch1.png
+Batch size: 1
+srgd - 1
+	avg time: 0.3874
+	avg norm: 0.0003
+	avg max: 0.0002
+srgd - 5
+	avg time: 0.1462
+	avg norm: 0.0004
+	avg max: 0.0003
+srgd - 10
+	avg time: 0.1043
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 1.5381
+	avg norm: 0.2148
+	avg max: 0.1203
+assrgd - 5
+	avg time: 0.3982
+	avg norm: 0.0077
+	avg max: 0.0048
+assrgd - 10
+	avg time: 0.2890
+	avg norm: 0.0022
+	avg max: 0.0013
+assgd
+	avg time: 2.4340
+	avg norm: 0.7824
+	avg max: 0.4402
+sgd
+	avg time: 0.3797
+	avg norm: 7.1752
+	avg max: 3.6005
+Summary for dim-10-batch-50.png
+Batch size: 50
+srgd - 1
+	avg time: 0.0742
+	avg norm: 4.2159
+	avg max: 2.2892
+srgd - 5
+	avg time: 0.1923
+	avg norm: 0.0128
+	avg max: 0.0071
+srgd - 10
+	avg time: 0.3171
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 0.0811
+	avg norm: 4.2332
+	avg max: 2.2343
+assrgd - 5
+	avg time: 0.1934
+	avg norm: 0.0611
+	avg max: 0.0341
+assrgd - 10
+	avg time: 0.3212
+	avg norm: 0.0058
+	avg max: 0.0031
+assgd
+	avg time: 0.0809
+	avg norm: 8.8331
+	avg max: 4.6702
+sgd
+	avg time: 0.0744
+	avg norm: 8.8198
+	avg max: 4.6680
+Summary for dim-10-batch-500.png
+Batch size: 500
+srgd - 1
+	avg time: 0.0342
+	avg norm: 15.8454
+	avg max: 8.3123
+srgd - 5
+	avg time: 0.1386
+	avg norm: 8.8024
+	avg max: 4.6695
+srgd - 10
+	avg time: 0.2676
+	avg norm: 4.3178
+	avg max: 2.3130
+assrgd - 1
+	avg time: 0.0340
+	avg norm: 15.8305
+	avg max: 8.3150
+assrgd - 5
+	avg time: 0.1416
+	avg norm: 8.8209
+	avg max: 4.6839
+assrgd - 10
+	avg time: 0.2684
+	avg norm: 4.2500
+	avg max: 2.2625
+assgd
+	avg time: 0.0337
+	avg norm: 17.0614
+	avg max: 8.9443
+sgd
+	avg time: 0.0345
+	avg norm: 17.0462
+	avg max: 8.9311
+Summary for dim-100-batch1.png
+Batch size: 1
+srgd - 1
+	avg time: 0.3874
+	avg norm: 0.0003
+	avg max: 0.0002
+srgd - 5
+	avg time: 0.1462
+	avg norm: 0.0004
+	avg max: 0.0003
+srgd - 10
+	avg time: 0.1043
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 1.5381
+	avg norm: 0.2148
+	avg max: 0.1203
+assrgd - 5
+	avg time: 0.3982
+	avg norm: 0.0077
+	avg max: 0.0048
+assrgd - 10
+	avg time: 0.2890
+	avg norm: 0.0022
+	avg max: 0.0013
+assgd
+	avg time: 2.4340
+	avg norm: 0.7824
+	avg max: 0.4402
+sgd
+	avg time: 0.3797
+	avg norm: 7.1752
+	avg max: 3.6005
+Summary for dim-100-batch-50.png
+Batch size: 50
+srgd - 1
+	avg time: 48.5694
+	avg norm: 0.0000
+	avg max: 0.0000
+srgd - 5
+	avg time: 9.5648
+	avg norm: 0.0000
+	avg max: 0.0000
+srgd - 10
+	avg time: 7.3124
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 48.6095
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 5
+	avg time: 11.8333
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 10
+	avg time: 7.0770
+	avg norm: 0.0000
+	avg max: 0.0000
+assgd
+	avg time: 48.7145
+	avg norm: 0.0399
+	avg max: 0.0086
+sgd
+	avg time: 48.5370
+	avg norm: 0.0410
+	avg max: 0.0085
+Summary for dim-100-batch-500.png
+Batch size: 500
+srgd - 1
+	avg time: 3.7346
+	avg norm: 13.7226
+	avg max: 2.4163
+srgd - 5
+	avg time: 4.7857
+	avg norm: 0.0409
+	avg max: 0.0088
+srgd - 10
+	avg time: 6.0916
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 3.7461
+	avg norm: 13.7375
+	avg max: 2.4323
+assrgd - 5
+	avg time: 4.7967
+	avg norm: 0.0414
+	avg max: 0.0085
+assrgd - 10
+	avg time: 6.1195
+	avg norm: 0.0000
+	avg max: 0.0000
+assgd
+	avg time: 3.7465
+	avg norm: 28.5873
+	avg max: 4.9163
+sgd
+	avg time: 3.7386
+	avg norm: 28.5485
+	avg max: 4.9079
+Summary for dim-100-batch-1000.png
+Batch size: 500
+srgd - 1
+	avg time: 3.7346
+	avg norm: 13.7226
+	avg max: 2.4163
+srgd - 5
+	avg time: 4.7857
+	avg norm: 0.0409
+	avg max: 0.0088
+srgd - 10
+	avg time: 6.0916
+	avg norm: 0.0000
+	avg max: 0.0000
+assrgd - 1
+	avg time: 3.7461
+	avg norm: 13.7375
+	avg max: 2.4323
+assrgd - 5
+	avg time: 4.7967
+	avg norm: 0.0414
+	avg max: 0.0085
+assrgd - 10
+	avg time: 6.1195
+	avg norm: 0.0000
+	avg max: 0.0000
+assgd
+	avg time: 3.7465
+	avg norm: 28.5873
+	avg max: 4.9163
+sgd
+	avg time: 3.7386
+	avg norm: 28.5485
+	avg max: 4.9079
