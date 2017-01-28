@@ -1,8 +1,19 @@
 import numpy as np
 import logging
 from ..function.function import LinearFunction, Function
+import time
 
 logger = logging.getLogger()
+
+class Timer:
+
+    def __enter__(self):
+        self.start = time.clock()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.clock()
+        self.interval = self.end - self.start
 
 class Optimizer:
     """Optimizer class is a base class for various optimizers and
@@ -86,8 +97,6 @@ class Optimizer:
                                              batch_size)
             mini_batch = np.concatenate((data, labels.reshape(labels.size, 1)),
                                         axis=1)[batch_indices]
-            logger.debug("Created mini-batch of shape\
-                    {}".format(mini_batch.shape))
             # Run weight update
             if idx > 0:
                 tail_diff = np.subtract(old_weights, self.approx_func.parameters)

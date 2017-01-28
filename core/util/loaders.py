@@ -1,6 +1,7 @@
 from enum import Enum
 import struct
 import numpy as np
+import os
 
 class Data(Enum):
     TRAIN = 0
@@ -11,8 +12,8 @@ class MNISTLoader():
     Loads the training and testing data for the MNIST dataset
     """
 
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, path="/data/mnist/"):
+        self.path = os.path.abspath(path)
 
     def load_data(dtype):
         """Loads data
