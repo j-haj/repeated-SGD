@@ -19,6 +19,11 @@ class Function:
         logger.error("Failed to implement virtual method evaluate")
         raise NotImplementedError("Must implement this method in inherited class")
 
+    def gradient(self, x_vals):
+        """Interface method - this hsould be implemented by inherited class"""
+        logger.error("Failed to implement virtual method `gradient`")
+        raise NotImplementedError("Must implement this method in inherited class")
+
 class LinearFunction(Function):
     """Class of functions that take the form
         y = a_1 * x_1 + a_2 * x_2 + ... + a_n * x_n
@@ -41,3 +46,7 @@ class LinearFunction(Function):
     def evaluate(self, x_vals):
         """Return inner product of x_vals with parameters"""
         return np.dot(self.parameters, x_vals)
+
+    def gradient(self, x_vals):
+        """Returns the gradient of a linear function"""
+        return self.parameters
