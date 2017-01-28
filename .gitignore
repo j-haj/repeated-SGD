@@ -1,6 +1,9 @@
 # OS X
 *.DS_Store
 
+# Data
+/data/*
+
 # log files
 *.log
 
