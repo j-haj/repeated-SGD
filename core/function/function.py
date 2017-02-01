@@ -13,6 +13,7 @@ class Function:
             parameters: parameters that parameterize the function
         """
         self.parameters = parameters
+        logger.debug("Function parameters: {}".format(self.parameters))
 
     def evaluate(self, x_vals):
         """Inteface method - this should be implemented by inherited class"""

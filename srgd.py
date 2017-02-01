@@ -102,8 +102,8 @@ def run_short_experiment(dimension, learning_rate):
     # Create results dicitonary
     results = {"sgd": [], "assgd": [], "srgd": [], "assrgd": []}
     # Run tests
-    num_tests = 5
-    mini_batch_sizes = [1, 50, 100, 500, 1000]
+    num_tests = 1
+    mini_batch_sizes = [1]
     r_factors = [i for i in range(1,11)]
 
     for i in range(num_tests):
@@ -385,7 +385,7 @@ if __name__ == "__main__":
     #main()
     logger.info("Running experiment")
     #result = run_experiment()
-    results = run_short_experiment(10, .000001)
+    results = run_short_experiment(5, .00001)
     logger.info("Experiment Complete!")
     results_filename = "experiment_results.yaml"
     write_results_to_file(results, "results_1000_01.csv")
