@@ -21,7 +21,7 @@ class Optimizer:
     """
 
     def __init__(self,
-                 func=None,
+                 loss_func=None,
                  approx_func=None,
                  gradient=None,
                  learning_rate=0.000001):
@@ -29,8 +29,7 @@ class Optimizer:
         for evaluating y_hat as well as getting gradient
         values.
         """
-        self._true_coeff = func.parameters
-        self.function = func
+        self.loss_func = loss_func
         self.approx_func = approx_func
         self.gradient = gradient
         self._learning_rate = learning_rate
@@ -39,12 +38,20 @@ class Optimizer:
         self.errors = []
         self._max_iter = 100000
         self.log_rate = 0
+        self.time = 0
 
-    def get_error(self):
-        """Returns a dictionary containing the norm error and max error"""
-        norm_error = np.linalg.norm(self._true_coeff - self.approx_func.parameters)
-        max_error = max(np.abs(self._true_coeff - self.approx_func.parameters))
-        return {"norm": norm_error, "max": max_error}
+    def get_error(self, data):
+        """Returns the current error over the entire dataset using
+        the registered error function
+        """
+        x_vals = data[:, :-1]
+        y = data[:, -1]
+
+        total_error = 0
+        for i in range(y.size):
+            total_error += self.loss_func.evaluate(x_vals[i, :], y[i])
+        
+        return total_error / y.size 
 
     def update_weights(self, data):
         """Interface method - should be implemented in subclasses"""
@@ -76,61 +83,76 @@ class Optimizer:
             early_stop: threshold at which to stop training
         """
 
-        old_weights = np.array([100 for _ in range(data[0, :].size)])
+        old_weights = np.array([5 for _ in range(data[0, :].size)])
         logger.info("Using mini-batch of size {}".format(batch_size))
         idx = 0
         epoch_idx = 0
-        for epoch_num in range(num_epochs):
+        with Timer() as t:
+            for epoch_num in range(num_epochs):
 
-            if idx > self._max_iter or np.allclose(old_weights,
-                                                   self.approx_func.parameters,
-                                                   early_stop):
-                if idx > self._max_iter:
-                    logger.info("Stopping early due to exceeds max number of iterations")
-                else:
-                    logger.info("Stopping early due to tail convergence")
-                break
+                if idx > self._max_iter or np.allclose(old_weights,
+                                                       self.approx_func.parameters,
+                                                       early_stop):
+                    logger.debug("np.allclose = {}".format(np.allclose(old_weights,
+                                                       self.approx_func.parameters,
+                                                       early_stop)))
+                    if idx > self._max_iter:
+                        logger.info("[iteration {}]Stopping early: max number of iterations".format(
+                            idx))
+                    else:
+                        logger.info("[iteration {}]Stopping early: tail convergence".format(
+                            idx))
+                    break
 
-            # Get batch
-            length = data.shape[0]
-            batch_indices = np.random.choice(length,
-                                             batch_size)
-            mini_batch = np.concatenate((data, labels.reshape(labels.size, 1)),
-                                        axis=1)[batch_indices]
-            # Run weight update
-            if idx > 0:
-                tail_diff = np.subtract(old_weights, self.approx_func.parameters)
-                train_diff = np.subtract(self.approx_func.parameters, self.function.parameters)
-                
-                max_tail_err = np.max(np.fabs(tail_diff))
-                norm_tail_err = np.linalg.norm(tail_diff)
-                max_train_err = np.max(np.fabs(train_diff))
-                norm_train_err = np.linalg.norm(train_diff)
+                # Get batch
+                length = data.shape[0]
+                batch_indices = np.random.choice(length,
+                                                 batch_size)
 
-                self.tail_error.append((max_tail_err, norm_tail_err))
-                self.training_error.append((max_train_err, norm_train_err))
-                if self.log_rate > 0 and idx % self.log_rate == 0:
-                    logger.debug("[{}] Tail error - max:  {:.4f}".format(idx, max_tail_err))
-                    logger.debug("[{}] Tail error - norm: {:.4f}".format(idx, norm_tail_err))
-                    logger.debug("[{}] Train error - max:  {:.4f}".format(idx, max_train_err))
-                    logger.debug("[{}] Train error - norm: {:.4f}".format(idx, norm_train_err))
+                # Need to reshape the batch to properly concatenate
+                mini_batch = np.concatenate((data, labels.reshape(labels.size, 1)),
+                                            axis=1)[batch_indices]
+                # Run weight update
+                if idx > 0:
+                    tail_diff = np.subtract(old_weights,
+                            self.approx_func.parameters)
+                    train_diff = self.loss_func.evaluate(data, labels)                    
+                    max_tail_err = np.max(np.fabs(tail_diff))
+                    norm_tail_err = np.linalg.norm(tail_diff)
+                    max_train_err = np.max(np.fabs(train_diff))
+                    norm_train_err = np.linalg.norm(train_diff)
 
-            old_weights = self.approx_func.parameters
-            idx += self.update_weights(mini_batch)
-            epoch_idx += 1
-            self.errors.append((idx, self.get_error()))
+                    self.tail_error.append((max_tail_err, norm_tail_err))
+                    self.training_error.append((max_train_err, norm_train_err))
+                    if self.log_rate > 0 and idx % self.log_rate == 0:
+                        logger.debug("[{}] Tail error - max:  {:.4f}".format(
+                            idx, max_tail_err))
+                        logger.debug("[{}] Tail error - norm: {:.4f}".format(
+                            idx, norm_tail_err))
+                        logger.debug("[{}] Train error - max:  {:.4f}".format(
+                            idx, max_train_err))
+                        logger.debug("[{}] Train error - norm: {:.4f}".format(
+                            idx, norm_train_err))
 
+                old_weights = self.approx_func.parameters
+                idx += self.update_weights(mini_batch)
+                epoch_idx += 1
+                current_err = self.get_error(mini_batch)
+                logger.debug("Iteration: {}\t Error: {}".format(idx, current_err))
+                self.errors.append((idx, current_err))
+
+        self.time = t.interval
         return (idx, epoch_idx, self.errors)
 
 class SGD(Optimizer):
     """Stochastic Gradient Descent optimizer."""
 
     def __init__(self,
-                 func=None,
+                 loss_func=None,
                  approx_func=None,
                  gradient=None,
                  learning_rate=0.0001):
-        super(SGD, self).__init__(func, approx_func, gradient, learning_rate)
+        super(SGD, self).__init__(loss_func, approx_func, gradient, learning_rate)
 
     def update_weights(self, data):
         """Runs a single weight update and returns the updated weights"""
@@ -141,17 +163,13 @@ class SGD(Optimizer):
         aggregate_grad = 0
 
         for i in range(y.size):
-            # Get diff between true y and estimated y
-            y_hat = self.approx_func.evaluate(x_vals[i, :])
-            diff = y_hat - y[i]
-
             # Get gradient
-            aggregate_grad += self.gradient(diff, x_vals[i, :])
+            aggregate_grad = np.add(aggregate_grad,
+                    self.loss_func.gradient(x_vals[i, :], y[i]))
 
-        aggregate_grad /= y.size
-
-        self.approx_func.parameters = self.approx_func.parameters - \
-                                                  self._learning_rate * aggregate_grad
+        aggregate_grad = np.divide(aggregate_grad, y.size)
+        logger.debug("SGD gradient: {}".format(aggregate_grad))
+        self.approx_func.update_parameters(self._learning_rate * aggregate_grad)
         return 1
 
 class ASSGD(Optimizer):
@@ -159,7 +177,7 @@ class ASSGD(Optimizer):
     and adaptive step size.
     """
     def __init__(self,
-                 func=None,
+                 loss_func=None,
                  approx_func=None,
                  gradient=None,
                  learning_rate=0.0001,
@@ -175,7 +193,7 @@ class ASSGD(Optimizer):
             func: function approximating the target function
             gradient: function that returns the gradient
         """
-        super(ASSGD, self).__init__(func, approx_func, gradient, learning_rate)
+        super(ASSGD, self).__init__(loss_func, approx_func, gradient, learning_rate)
         self._threshold = threshold
         self._step_factor = step_factor
         self._threshold_step = threshold_step
@@ -189,15 +207,13 @@ class ASSGD(Optimizer):
         old_weights = self.approx_func.parameters
         
         for i in range(y.size):
-            y_hat = self.approx_func.evaluate(x_vals[i, :])
-            diff = y_hat - y[i]
+            aggregate_grad = np.add(aggregate_grad,
+                    self.loss_func.gradient(x_vals[i, :], y[i]))
 
-            aggregate_grad += self.gradient(diff, x_vals[i, :])
+        aggregate_grad = np.divide(aggregate_grad, y.size)
+        logger.debug("ASSGD gradient: {}".format(aggregate_grad))
+        self.approx_func.update_parameters(self._learning_rate * aggregate_grad)
 
-        aggregate_grad /= y.size
-
-        self.approx_func.parameters = self.approx_func.parameters - \
-                                                  self._learning_rate * aggregate_grad
         # Check diff and update learning rate if necessary
         if np.allclose(self.approx_func.parameters,
                        old_weights, self._threshold):
@@ -213,7 +229,7 @@ class SRGD(Optimizer):
     """Stochastic Repeated Gradient Descent using adaptive step-size"""
 
     def __init__(self,
-                 func=None,
+                 loss_func=None,
                  approx_func=None,
                  gradient=None,
                  threshold=0,
@@ -235,7 +251,7 @@ class SRGD(Optimizer):
                            this value will geometrically decrease over time
             repeat_num: number of iterations the weights are updated each time
         """
-        super(SRGD, self).__init__(func, approx_func, gradient, learning_rate*2)
+        super(SRGD, self).__init__(loss_func, approx_func, gradient, learning_rate*2)
         self._threshold = threshold
         self._step_factor = step_factor
         self._threshold_step = threshold_step
@@ -251,15 +267,12 @@ class SRGD(Optimizer):
         for _ in range(self._repeat_num):
             aggregate_grad = 0
             for i in range(y.size):
-                y_hat = self.approx_func.evaluate(x_vals[i, :])
-                diff = y_hat - y[i]
+                aggregate_grad = np.add(aggregate_grad,
+                        self.loss_func.gradient(x_vals[i, :], y[i]))
 
-                aggregate_grad += self.gradient(diff, x_vals[i, :])
-
-            aggregate_grad /= y.size
-
-            self.approx_func.parameters = self.approx_func.parameters - \
-                                                      aggregate_grad * self._learning_rate
+            aggregate_grad = np.divide(aggregate_grad, y.size)
+            logger.debug("SRGD gradient: {}".format(aggregate_grad))
+            self.approx_func.update_parameters(aggregate_grad  * self._learning_rate)
 
         # Check diff and update learning rate if necessary
         if self._threshold > 0 and \

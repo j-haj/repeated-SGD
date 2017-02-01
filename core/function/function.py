@@ -24,7 +24,12 @@ class Function:
         logger.error("Failed to implement virtual method `gradient`")
         raise NotImplementedError("Must implement this method in inherited class")
 
-class SingeLayerNetwork(Function):
+    def update_parameters(self, parameters):
+        """Interface method - this should be implemented by inherited class"""
+        logger.error("Failed to implement virtual method `update_parameters`")
+        raise NotImplementedError
+
+class SingleLayerNetwork(Function):
     """Class of neural networks with a single hidden layer"""
 
     def __init__(self, dim, num_neurons, p_min=0, p_max=1):
@@ -41,7 +46,7 @@ class SingeLayerNetwork(Function):
         self.parameters = np.empty([num_neurons, dim + 1])
         for i in range(num_neurons):
             self.parameters[i] = np.random.randin(p_min, p_max, (dim + 1))
-        super(SingleLayerNetwork).__init__(parameters)
+        super(SingleLayerNetwork).__init__(self.parameters)
         self.num_neurons = num_neurons
         self.dim = dim
         
@@ -55,10 +60,19 @@ class SingeLayerNetwork(Function):
         # the last parameter in each row is the bias
         return np.dot(self.parameters, x_vals)
 
-    def gradient(self, x_vals=None):
+    def gradient(self, x_vals):
         """Gradient function. Note that the last parameter for each neuron
         is a bias, so it's derivative is 1.
         """
+        rows = x_vals.size[0]
+        ones = np.ones(rows).reshape((rows, 1))
+        return np.concatenate((x_vals, ones), axis=1) 
+
+    def update_parameters(self, update_val):
+        """Updates parameter matrix"""
+        logger.debug("Old parameters: {}".format(self.parameters))
+        self.parameters = np.subtract(self.parameters, update_val)
+        logger.debug("New parameters: {}".format(self.parameters))
 
 class LinearFunction(Function):
     """Class of functions that take the form
@@ -81,8 +95,17 @@ class LinearFunction(Function):
 
     def evaluate(self, x_vals):
         """Return inner product of x_vals with parameters"""
+        if x_vals.size != self.parameters.size:
+            logger.info("x_vals: {}".format(x_vals))
+            logger.info("self.parameters: {}".format(self.parameters))
         return np.dot(self.parameters, x_vals)
 
     def gradient(self, x_vals):
         """Returns the gradient of a linear function"""
-        return self.parameters
+        return x_vals
+
+    def update_parameters(self, update_val):
+        """Updates parameter array"""
+        logger.debug("Old parameters: {}".format(self.parameters))
+        self.parameters = np.subtract(self.parameters, update_val)
+        logger.debug("New parameters: {}".format(self.parameters))

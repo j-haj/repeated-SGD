@@ -33,11 +33,27 @@ class Timer:
         self.end = time.clock()
         self.interval = self.end - self.start
 
+def square_loss(y, y_hat):
+    """Calculates the square loss for the given y values"""
+    return 0.5 * (y - y_hat)**2
 
+
+def gradient(x_vals, y):
+    return -1 * (y - y_hat) * np.concatenate(x_vals, [1])
+
+def sgd(approx_func, data):
 
 
 def main():
     """Main function"""
+
+    # Load MNIST training data
+
+    # Build model scaffolding
+
+    # Train model
+
+    # Test model on test data
     pass
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import numpy as np
 import datetime
 import time
 from core.function.function import LinearFunction
+from core.function.loss_function import SquareLoss
 from core.optimizers.optimizers import SGD, ASSGD, SRGD
 from sklearn import preprocessing
 
@@ -130,26 +131,32 @@ def run_short_experiment(dimension, learning_rate):
                 approx_f_srgd = LinearFunction(dim=dimension)
                 approx_f_assrgd = LinearFunction(dim=dimension)
                 logger.info("Approximate functions created")
+                
+                # Create loss functions
+                sgd_loss = SquareLoss(approx_f_sgd)
+                assgd_loss = SquareLoss(approx_f_assgd)
+                srgd_loss = SquareLoss(approx_f_srgd)
+                assrgd_loss = SquareLoss(approx_f_assrgd)
 
                 # Create optimization instances
-                sgd = SGD(func=test_func,
+                sgd = SGD(loss_func=sgd_loss,
                           approx_func=approx_f_sgd,
                           gradient=get_gradient,
                           learning_rate=learning_rate)
 
-                assgd = ASSGD(func=test_func,
+                assgd = ASSGD(loss_func=assgd_loss,
                               approx_func=approx_f_assgd,
                               gradient=get_gradient,
                               threshold=0.001,
                               learning_rate=learning_rate)
 
-                srgd = SRGD(func=test_func,
+                srgd = SRGD(loss_func=srgd_loss,
                             approx_func=approx_f_srgd,
                             gradient=get_gradient,
                             learning_rate=learning_rate,
                             repeat_num=r)
 
-                assrgd = SRGD(func=test_func,
+                assrgd = SRGD(loss_func=assrgd_loss,
                               approx_func=approx_f_assrgd,
                               gradient=get_gradient,
                               threshold=0.001,
@@ -177,7 +184,8 @@ def run_short_experiment(dimension, learning_rate):
                                 "r": r}
                     logger.info("Completed {} optimization in {:.5f} seconds".format(key, t.interval))
                     logger.info("{} error: {}".format(key,
-                        optimizers[key].get_error()))
+                        optimizers[key].get_error(np.concatenate((x_vals, labels.reshape(labels.size, 1)),
+                                                                 axis=1))))
                     results[key].append(test_res)
     return results
 
@@ -377,7 +385,7 @@ if __name__ == "__main__":
     #main()
     logger.info("Running experiment")
     #result = run_experiment()
-    results = run_short_experiment(1000, .01)
+    results = run_short_experiment(10, .000001)
     logger.info("Experiment Complete!")
     results_filename = "experiment_results.yaml"
     write_results_to_file(results, "results_1000_01.csv")
