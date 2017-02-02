@@ -1,7 +1,12 @@
 from enum import Enum
+from pathlib import Path
 import struct
 import numpy as np
 import os
+import logging
+
+logger = logging.getLogger()
+
 
 class Data(Enum):
     TRAIN = 0
@@ -11,11 +16,13 @@ class MNISTLoader():
     """
     Loads the training and testing data for the MNIST dataset
     """
+    
+    def __init__(self, path="data/mnist"):
+        self.path = os.path.normpath(os.getcwd() + path)
+        logger.debug("Setting data search path to: {}".format(
+            self.path))
 
-    def __init__(self, path="/data/mnist/"):
-        self.path = os.path.abspath(path)
-
-    def load_data(dtype):
+    def load_data(self, dtype):
         """Loads data
         
         Parameter:
@@ -24,6 +31,8 @@ class MNISTLoader():
         Return: a tuple of numpy arrays whose first element is an array of
                 image data and second element is an array of label data
         """
+        
+        logger.debug("Loading data from directory: {}".format(self.path))
 
         # Get file names
         if dtype == Data.TRAIN:

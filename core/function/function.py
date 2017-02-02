@@ -46,8 +46,8 @@ class SingleLayerNetwork(Function):
         """
         self.parameters = np.empty([num_neurons, dim + 1])
         for i in range(num_neurons):
-            self.parameters[i] = np.random.randin(p_min, p_max, (dim + 1))
-        super(SingleLayerNetwork).__init__(self.parameters)
+            self.parameters[i] = np.random.randint(p_min, p_max, (dim + 1))
+        super(SingleLayerNetwork, self).__init__(self.parameters)
         self.num_neurons = num_neurons
         self.dim = dim
         

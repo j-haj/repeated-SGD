@@ -15,5 +15,5 @@ handlers:
         filename: srgd.log
 
 root:
-    level: INFO
+    level: DEBUG
     handlers: [console, file]
