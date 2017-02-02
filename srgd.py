@@ -104,7 +104,8 @@ def run_short_experiment(dimension, learning_rate):
     # Run tests
     num_tests = 1
     mini_batch_sizes = [1]
-    r_factors = [i for i in range(1,11)]
+    #r_factors = [i for i in range(1,11)]
+    r_factors = [1, 5, 10]
 
     for i in range(num_tests):
         logger.info("Test iteration {}".format(i))
@@ -169,6 +170,9 @@ def run_short_experiment(dimension, learning_rate):
                 for key in results:
                     o = optimizers[key]
                     logger.info("Running optimization on {}".format(key))
+                    if r != 1 and (key == "sgd" or key == "assgd"):
+                        continue
+
                     with Timer() as t:
                         (n_iter, n_epoch, errors) = o.solve(
                             data=x_vals,
@@ -385,7 +389,7 @@ if __name__ == "__main__":
     #main()
     logger.info("Running experiment")
     #result = run_experiment()
-    results = run_short_experiment(5, .00001)
+    results = run_short_experiment(5, .0001)
     logger.info("Experiment Complete!")
     results_filename = "experiment_results.yaml"
     write_results_to_file(results, "results_1000_01.csv")
