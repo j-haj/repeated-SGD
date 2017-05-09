@@ -51,7 +51,7 @@
 
 
 
-\documentclass[conference,compsoc]{IEEEtran}
+\documentclass[,conference,compsoc]{IEEEtran}
 % Some/most Computer Society conferences require the compsoc mode option,
 % but others may want the standard conference format.
 %
@@ -85,9 +85,12 @@
 % When switching from latex to pdflatex and vice-versa, the compiler may
 % have to be run twice to clear warning/error messages.
 
+% set space package to adjust line spacing
+\usepackage{setspace}
 
-
-
+% add line numbers to both sides of the doucment
+\usepackage[switch]{lineno}
+\usepackage{blindtext}
 
 
 % *** CITATION PACKAGES ***
@@ -328,8 +331,14 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
+% Adds page borders and file info (page number, date, filename, etc)
+\usepackage[a4,frame,center]{crop}
 
 \begin{document}
+
+% add line numbers
+\linenumbers
+
 %
 % paper title
 % Titles are generally capitalized except for words such as a, an, and, as,
@@ -408,7 +417,6 @@ Email: jeffrey-hajewski@uiowa.edu}}
 %
 % For peerreview papers, this IEEEtran command inserts a page break and
 % creates the second title. It will be ignored for other modes.
-\IEEEpeerreviewmaketitle
 
 
 
@@ -440,9 +448,10 @@ Formally, we are solving the problem
     \theta = \arg \min_{\theta} \sum_{i=1}^n ||f(x_i; \theta) - y_i||_2^2
 \end{equation}
 
-where we have $n$ number of data points, $x_i \in \mathbb{R}^d$ and
+where we have $n$ number of data points, $x_i \in x \subset \mathbb{R}^d$ and
 corresponding labels $y_i \in \mathbb{R}$, and $f: \mathbb{R}^d \rightarrow
-\mathbb{R}$. We assume $f(x)$ is a linear function given by~\ref{eq:f}
+\mathbb{R}$. We assume $f(x;\theta)$ is a linear function, parameterized by
+$\theta$ and given by~\ref{eq:f}
 
 \begin{equation}\label{eq:f}
     f(x; \theta) = \sum_{i = 1}^d \theta_i x_i
@@ -451,21 +460,22 @@ corresponding labels $y_i \in \mathbb{R}$, and $f: \mathbb{R}^d \rightarrow
 
 \subsubsection{Stochastic Gradient Descent}
 Stochastic Gradient Descent is a derivative of Gradient Descent where the
-gradient $\nabla f(x)$ is replaced by $\nabla f_i(x)$, an approximation of the
-gradient calculated by computing the gradient at a randomly selected point,
-determined by uniformly sampling (without replacement) over the data set. The
-parameter update is then performed via the stand update~\ref{eq:sgd}
+gradient $\nabla f(x; \theta)$ is replaced by $\nabla f(x_i; \theta)$, an
+approximation of the gradient calculated by computing the gradient at a randomly
+selected point, $x_i \in x$, determined by uniformly sampling (with replacement) over the
+data set. The parameter update is then performed via the standard
+update~\ref{eq:sgd}, where $x_i$ is a single data point
 
 \begin{equation}\label{eq:sgd}
-    \theta_{k+1} \gets \theta_k - \alpha \nabla f_i(x)
+    \theta_{k+1} \gets \theta_k - \alpha \nabla f(x_i; \theta_k)
 \end{equation}
 
-However, this approach has a couple of drawbacks. The main drawback is due to an
-increased variance in the approximate gradient from calculating the gradient at
-only a single point. This results in slowing the rate of convergence when
-compared to Gradient Descent. A number of approaches attempt to reduce this
-variance [refs-here], but the simplest and most common approach to reduce the
-variance is mini-batching.
+Each pass over the dataset is considered an epoch, thus multiple passes over the
+dataset may occur. This approach, however, has a couple of drawbackswith the
+main drawback being an increase in variance of the approximate gradient. This
+results in slowing the rate of convergence when compared to Gradient Descent. A
+number of approaches attempt to reduce this variance [refs-here], but the
+simplest and most common approach to reduce the variance is mini-batching.
 
 \subsubsection{Mini-Batch SGD}
 Mini-batch SGD randomly samples some pre-determined number of points (say $b$
@@ -480,12 +490,37 @@ SRGD improves upon mini-batch SGD by using recently cached data to perform
 several updates of the weights via~\ref{eq:update} before sampling new data. By
 not sampling new data at each update, the mini-batch data remains in cache.
 While this increases the variance in the theoretical convergence of our method,
-the compute time is dramatially reduced. Additionally, we use a dynamic learning
-rate, which is geometrically decreased by a factor of $0.5$ when successive
-weight updates are within some threshold value $\epsilon$ of eachother.
+the compute time is reduced. Additionally, we use a dynamic learning
+rate, which is geometrically decreased by a factor of $\frac{1}{2}$ when successive
+weight updates are within some threshold value $\epsilon$ of eachother. This
+threshold is also reduced by a factor of $\frac{1}{2}$. We combine this with an
+early stopping threshold, which compares the slope of the line connecting
+successive weight updates to some threshold value $\epsilon_{stop}$.
+
+We denote the gradient update term by $\Delta\theta_{i,j}^{k}(x_{I_i}, \alpha)$ as
+simplification in notation. It is defined as:
+
+\begin{equation*}
+    \Delta\theta_{i,j}^{k}(x_{I_i}, \alpha) = -\alpha \nabla f(x_{I_i}; \theta_{i,j}^k)
+\end{equation*}
+
+The term $I_i$ is a set of indices defined
+
+\begin{equation*}
+    I_i = \{i | i \sim U[1,n]\}
+\end{equation*}
+
+where $n$, as noted previously, is the number of data points and the indices $i$
+are IID random variable sampled from a uniform distribution on the interval
+$[1,n]$. We use $I_i$ as an index to denote the set of $x_i$ whose indices are
+in $I_i$.
+
+\begin{equation*}
+    x_{I_i} = \{ x_i | i \in I_i, \hspace{.5em}x_i \in x \}
+\end{equation*}
 
 \section{Algorithm}
-Algorithm 1 details the SRGD algorithm. Additionally, we check for convergence
+Algorithm~\ref{fig:algorithm1}  details the SRGD algorithm. Additionally, we check for convergence
 and stop early if convergence as been achieved. The key step is repeating with
 weight update $r$ times using the same mini-batch data. This results in $r$
 approximate gradient computations along with $r$ weight updates. After the
@@ -499,20 +534,37 @@ rate of convergence (measured by the distance between prior weight updates).
 
 \begin{figure}
     \textbf{Algorithm 1}
-    \label{fig:algorithm}
+    \label{fig:algorithm1}
     \begin{algorithmic}[1]
+    \setstretch{1.3}
     \REQUIRE $r \geq 1$ and $b \geq 1$ 
-    \FOR {$i=0$ to $\frac{n}{b}$}
-        \STATE $x \gets x_{I_i}$
-        \FOR {$j=0$ to $r$}
-            \STATE $\theta_{k+1} \gets \theta_k - \alpha \nabla f(x)$
+    \REQUIRE $\theta_0^0 \gets (u_1, u_2, \dots, u_n)$, where $u_i \sim U[0, 1]$
+    \REQUIRE learning rate: $\alpha_0 > 0$
+    \REQUIRE update threshold: $\epsilon > 0$
+    \REQUIRE number of epochs: $l \geq 1$ 
+    % loop over epochs
+    \FOR {$k = 1$ to $l$}
+        % set \theta based on prior \theta vals
+    \STATE $\theta_0^k = \theta_0^{k-1}$
+        \FOR {$i=0$ to $\frac{n}{b}$}
+            \STATE $I_i \sim U[1, n]$ such that  $|I_i| = b$
+            \STATE $x_{I_i} \gets \{x_i | i \in I_i, x_i\in x\}$
+            \FOR {$j = 1$ to $r$}
+                \STATE $\theta_{i+1,j}^k \gets \theta_{i,j}^k + \Delta \theta_{i,j}^k(x_{I_i}, r,
+                    \alpha)$
+                \IF {$||\theta_{i+1,j}^k - \theta_{i,j}^{k}|| < \epsilon$}
+                    \STATE $\alpha \gets \frac{\alpha}{2}$
+                    \STATE $\epsilon \gets \frac{\epsilon}{2}$
+                    \ELSIF {$\frac{1}{\alpha}||\theta_{i+1,j}^k - \theta_{i,j}^k|| <
+                    \epsilon_{stop}$}
+                    \RETURN $\theta_i^k$
+                \ENDIF
+            \ENDFOR
         \ENDFOR
-        \IF {$||\theta_k - \theta_{k-1}|| < \epsilon$}
-            \STATE $\alpha \gets \frac{\alpha}{2}$
-        \ENDIF
-    \ENDFOR
+    \ENDFOR 
     \end{algorithmic}
 \end{figure}
+
 \section{Theory}
 
 \section{Experiment}

@@ -1,0 +1,3 @@
+2017-02-17 13:11:52,861 - __main__ - INFO - covtype_test.py:fit_least_squares:81 :: Splitting data into training and test sets
+2017-02-17 13:11:52,880 - __main__ - INFO - covtype_test.py:fit_least_squares:83 :: Training indices created
+2017-02-17 13:11:52,998 - __main__ - INFO - covtype_test.py:fit_least_squares:85 :: Training labels partitioned

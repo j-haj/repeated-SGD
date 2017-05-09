@@ -1,0 +1,10 @@
+2017-02-17 07:26:19,944 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 07:26:19,945 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 07:26:19,945 - __main__ - INFO - covtype_test.py:fit_least_squares:118 :: Running SGD optimization
+2017-02-17 07:26:19,946 - root - INFO - optimizers.py:solve:87 :: Using mini-batch of size 10
+2017-02-17 07:26:32,484 - __main__ - INFO - covtype_test.py:fit_least_squares:126 :: Completed SGD optimization in 12.53124 seconds
+2017-02-17 07:26:32,779 - __main__ - INFO - covtype_test.py:fit_least_squares:128 :: SGD error: 0.1242111943796019
+2017-02-17 07:26:32,780 - __main__ - INFO - covtype_test.py:fit_least_squares:130 :: Running SRGD optimization
+2017-02-17 07:26:32,780 - root - INFO - optimizers.py:solve:87 :: Using mini-batch of size 10
+2017-02-17 07:26:45,370 - __main__ - INFO - covtype_test.py:fit_least_squares:138 :: Completed SRGD optimization in 12.58370 seconds
+2017-02-17 07:26:45,658 - __main__ - INFO - covtype_test.py:fit_least_squares:140 :: SRGD error: 0.1699311709640323

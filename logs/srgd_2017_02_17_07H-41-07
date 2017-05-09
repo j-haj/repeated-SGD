@@ -1,0 +1,4 @@
+2017-02-17 07:41:16,918 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 07:41:16,920 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 07:41:16,921 - __main__ - INFO - covtype_test.py:fit_least_squares:118 :: Running SGD optimization
+2017-02-17 07:41:16,921 - root - INFO - optimizers.py:solve:87 :: Using mini-batch of size 10

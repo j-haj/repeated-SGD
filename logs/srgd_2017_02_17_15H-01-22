@@ -1,0 +1,32 @@
+2017-02-17 15:01:34,404 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 15:01:34,405 - root - INFO - function.py:__init__:92 :: Paramters is None - generating random paramters between [0, 1]
+2017-02-17 15:01:34,406 - __main__ - INFO - covtype_test.py:fit_least_squares:130 :: Running SGD optimization
+2017-02-17 15:01:34,406 - root - INFO - optimizers.py:solve:89 :: Using mini-batch of size 10
+2017-02-17 15:04:45,587 - root - INFO - optimizers.py:solve:140 :: [100] Tail error - max:  0.0017
+2017-02-17 15:04:45,593 - root - INFO - optimizers.py:solve:142 :: [100] Tail error - norm: 0.0035
+2017-02-17 15:04:45,593 - root - INFO - optimizers.py:solve:144 :: [100] Train error - max:  0.1282
+2017-02-17 15:04:45,593 - root - INFO - optimizers.py:solve:146 :: [100] Train error - norm: 0.1282
+2017-02-17 15:08:14,857 - root - INFO - optimizers.py:solve:140 :: [200] Tail error - max:  0.0014
+2017-02-17 15:08:14,863 - root - INFO - optimizers.py:solve:142 :: [200] Tail error - norm: 0.0033
+2017-02-17 15:08:14,864 - root - INFO - optimizers.py:solve:144 :: [200] Train error - max:  0.1216
+2017-02-17 15:08:14,864 - root - INFO - optimizers.py:solve:146 :: [200] Train error - norm: 0.1216
+2017-02-17 15:11:45,818 - root - INFO - optimizers.py:solve:140 :: [300] Tail error - max:  0.0013
+2017-02-17 15:11:45,818 - root - INFO - optimizers.py:solve:142 :: [300] Tail error - norm: 0.0026
+2017-02-17 15:11:45,818 - root - INFO - optimizers.py:solve:144 :: [300] Train error - max:  0.1200
+2017-02-17 15:11:45,818 - root - INFO - optimizers.py:solve:146 :: [300] Train error - norm: 0.1200
+2017-02-17 15:15:20,536 - root - INFO - optimizers.py:solve:140 :: [400] Tail error - max:  0.0017
+2017-02-17 15:15:20,542 - root - INFO - optimizers.py:solve:142 :: [400] Tail error - norm: 0.0035
+2017-02-17 15:15:20,542 - root - INFO - optimizers.py:solve:144 :: [400] Train error - max:  0.1182
+2017-02-17 15:15:20,542 - root - INFO - optimizers.py:solve:146 :: [400] Train error - norm: 0.1182
+2017-02-17 15:18:53,357 - root - INFO - optimizers.py:solve:140 :: [500] Tail error - max:  0.0010
+2017-02-17 15:18:53,362 - root - INFO - optimizers.py:solve:142 :: [500] Tail error - norm: 0.0017
+2017-02-17 15:18:53,363 - root - INFO - optimizers.py:solve:144 :: [500] Train error - max:  0.1160
+2017-02-17 15:18:53,363 - root - INFO - optimizers.py:solve:146 :: [500] Train error - norm: 0.1160
+2017-02-17 15:22:16,405 - root - INFO - optimizers.py:solve:140 :: [600] Tail error - max:  0.0016
+2017-02-17 15:22:16,411 - root - INFO - optimizers.py:solve:142 :: [600] Tail error - norm: 0.0034
+2017-02-17 15:22:16,412 - root - INFO - optimizers.py:solve:144 :: [600] Train error - max:  0.1151
+2017-02-17 15:22:16,412 - root - INFO - optimizers.py:solve:146 :: [600] Train error - norm: 0.1151
+2017-02-17 15:25:51,460 - root - INFO - optimizers.py:solve:140 :: [700] Tail error - max:  0.0009
+2017-02-17 15:25:51,466 - root - INFO - optimizers.py:solve:142 :: [700] Tail error - norm: 0.0020
+2017-02-17 15:25:51,466 - root - INFO - optimizers.py:solve:144 :: [700] Train error - max:  0.1133
+2017-02-17 15:25:51,467 - root - INFO - optimizers.py:solve:146 :: [700] Train error - norm: 0.1133
