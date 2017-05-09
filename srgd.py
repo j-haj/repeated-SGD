@@ -69,11 +69,13 @@ def create_coefficients(n_dim, min_val=-10, max_val=11):
     """
     return np.random.randint(min_val, max_val, n_dim)
 
-def generate_labeled_data(n_data, func, x_min=-10, x_max=11):
+def generate_labeled_data(n_data, func, x_min=-10, x_max=11, noise_var=0):
     labels = np.zeros(n_data)
     data = np.zeros((n_data, func.parameters.size))
     for i in range(n_data):
-        x_data = np.random.randint(x_min, x_max, func.parameters.size)
+        noise = np.random.normal(0, noise_var, func.parameter.size) if \
+        noise_var != 0 else np.zeros(func.parameters.size)
+        x_data = np.random.randint(x_min, x_max, func.parameters.size) + noise
         label = func.evaluate(x_data)
         labels[i] = label
         data[i] = x_data
@@ -116,7 +118,8 @@ def run_short_experiment(dimension, learning_rate):
         test_func = LinearFunction(dim=dimension, parameters=coefficients)
         n_data = dimension * data_size_factor
         x_vals, labels = generate_labeled_data(n_data,
-                                               test_func)
+                                               test_func,
+                                               1)
         logger.info("Parameters, test function, and data generated")
 
         # Iterate over mini batch sizes
@@ -389,7 +392,7 @@ if __name__ == "__main__":
     #main()
     logger.info("Running experiment")
     #result = run_experiment()
-    results = run_short_experiment(5, .0001)
+    results = run_short_experiment(100, .001)
     logger.info("Experiment Complete!")
     results_filename = "experiment_results.yaml"
     write_results_to_file(results, "results_1000_01.csv")
