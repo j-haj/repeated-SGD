@@ -8,6 +8,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 import time
 import matplotlib.pyplot as plt
+import os
 
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -26,6 +27,12 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
+parser.add_argument('--num-tests', type=int, default=1, metavar='N',
+                    help='number of test iterations to run')
+parser.add_argument('--r', type=int, default=1, metavar='N',
+                    help='number of repeats to perform')
+parser.add_argument('--name', type=str, metavar='S',
+                    help="file name")
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -155,8 +162,52 @@ def train_model(epochs, r=1):
                 aggregate_runtime += stop - start
                 time_steps.append(aggregate_runtime)
                 loss_vals.append(loss.data[0])
-
+    
+                # If average of last 3 losses is within 0.001 of current loss,
+                # return early
+                if len(loss_vals) > 3:
+                    if abs(sum(loss_vals[-3:])/3 - loss_vals[-1]) < .00001:
+                        return time_steps, loss_vals
+                    
     return time_steps, loss_vals
+
+
+class TestResult():
+
+    def __init__(self, r, name):
+        """
+        Parameter info:
+        time: a list of lists where each list contains a number of time
+              intervals for a given run
+        loss: a list of lists where each list contains a number of loss
+              values for a given run (loss at each iteration)
+        """
+        self.r = r
+        self.num_sets = 0
+        self.times = []
+        self.losses = []
+        self.name = name
+
+    def add_result(self, time, loss):
+        self.times.append(time)
+        self.losses.append(loss)
+        self.num_sets += 1
+
+    def write_results_to_file(self):
+        name = os.getcwd()
+        name += "{name}_r{r}_{time}.csv".format(name=self.name,
+                r=self.r, time=time.time())
+        with open(name, "w") as ofile:
+            for i in range(self.num_sets):
+                loss = self.losses[i]
+                t = self.times[i]
+                for j in range(len(loss)):
+                    output = "{time},{loss},{id_n}\n".format(
+                        time=t[j],
+                        loss=loss[j],
+                        id_n=i)
+                    ofile.write(output)
+        
 
 # -----------------------------------------------------------------------------
 #
@@ -178,32 +229,17 @@ def generate_graph(x1, y1, label1, x2, y2, label2, title, filename, lw=0.25):
 #
 # -----------------------------------------------------------------------------
 def main():
-
-    std_t, std_loss = train_model(args.epochs)
-    r2_t, r2_loss = train_model(args.epochs, r=2)
-    generate_graph(std_t, std_loss, "SGD", r2_t, r2_loss, "SRGD (r=2)",
-    "Loss of SGD vs SGD(r=2)", "test.png")
+    num_tests = args.num_tests
+    results = TestResult(args.r, args.name)
+    for i in range(num_tests):
+        print("Test {}".format(i + 1))
+        std_t, std_loss = train_model(args.epochs)
+        r2_t, r2_loss = train_model(args.epochs, r=2)
+        results.add_result(r2_t, r2_loss)
+    results.write_results_to_file()
 
 if __name__ == "__main__":
     # Training settings
     torch.manual_seed(args.seed)
-    if args.cuda:
-        torch.cuda.manual_seed(args.seed)
-
-
-    kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=args.batch_size, shuffle=True, **kwargs)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=False, transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=args.batch_size, shuffle=True, **kwargs)
 
     main()

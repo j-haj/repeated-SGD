@@ -1,0 +1,91 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+F	main.py	/^import torch.nn.functional as F$/;"	i
+F	new_test.py	/^import torch.nn.functional as F$/;"	i
+Net	main.py	/^class Net(nn.Module):$/;"	c
+Net	new_test.py	/^class Net(nn.Module):$/;"	c
+TestResult	new_test.py	/^class TestResult():$/;"	c
+Variable	main.py	/^from torch.autograd import Variable$/;"	i
+Variable	new_test.py	/^from torch.autograd import Variable$/;"	i
+__init__	main.py	/^    def __init__(self):$/;"	m	class:Net
+__init__	new_test.py	/^    def __init__(self):$/;"	m	class:Net
+__init__	new_test.py	/^    def __init__(self, r, name):$/;"	m	class:TestResult
+add_result	new_test.py	/^    def add_result(self, time, loss):$/;"	m	class:TestResult
+argparse	main.py	/^import argparse$/;"	i
+argparse	new_test.py	/^import argparse$/;"	i
+args	main.py	/^args = parser.parse_args()$/;"	v
+args	new_test.py	/^args = parser.parse_args()$/;"	v
+datasets	main.py	/^from torchvision import datasets, transforms$/;"	i
+datasets	new_test.py	/^from torchvision import datasets, transforms$/;"	i
+experimental_train	main.py	/^def experimental_train(epoch, r=2):$/;"	f
+forward	main.py	/^    def forward(self, x):$/;"	m	class:Net
+forward	new_test.py	/^    def forward(self, x):$/;"	m	class:Net
+generate_graph	new_test.py	/^def generate_graph(x1, y1, label1, x2, y2, label2, title, filename, lw=0.25):$/;"	f
+generate_test_data	new_test.py	/^def generate_test_data(n_iter):$/;"	f
+help	main.py	/^                    help='SGD momentum (default: 0.5)')$/;"	v
+help	main.py	/^                    help='disables CUDA training')$/;"	v
+help	main.py	/^                    help='how many batches to wait before logging training status')$/;"	v
+help	main.py	/^                    help='input batch size for testing (default: 1000)')$/;"	v
+help	main.py	/^                    help='input batch size for training (default: 64)')$/;"	v
+help	main.py	/^                    help='learning rate (default: 0.01)')$/;"	v
+help	main.py	/^                    help='number of epochs to train (default: 10)')$/;"	v
+help	main.py	/^                    help='random seed (default: 1)')$/;"	v
+help	new_test.py	/^                    help='SGD momentum (default: 0.5)')$/;"	v
+help	new_test.py	/^                    help='disables CUDA training')$/;"	v
+help	new_test.py	/^                    help='how many batches to wait before logging training status')$/;"	v
+help	new_test.py	/^                    help='input batch size for testing (default: 1000)')$/;"	v
+help	new_test.py	/^                    help='input batch size for training (default: 64)')$/;"	v
+help	new_test.py	/^                    help='learning rate (default: 0.01)')$/;"	v
+help	new_test.py	/^                    help='number of epochs to train (default: 10)')$/;"	v
+help	new_test.py	/^                    help='random seed (default: 1)')$/;"	v
+kwargs	main.py	/^kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}$/;"	v
+main	new_test.py	/^def main():$/;"	f
+matplotlib	main.py	/^import matplotlib.pyplot as plt$/;"	i
+matplotlib	new_test.py	/^import matplotlib.pyplot as plt$/;"	i
+model	main.py	/^model = Net()$/;"	v
+model2	main.py	/^model2 = Net()$/;"	v
+nn	main.py	/^import torch.nn as nn$/;"	i
+nn	main.py	/^import torch.nn.functional as F$/;"	i
+nn	new_test.py	/^import torch.nn as nn$/;"	i
+nn	new_test.py	/^import torch.nn.functional as F$/;"	i
+offset	main.py	/^            offset = prior_time + t$/;"	v
+offset	main.py	/^offset = 0$/;"	v
+optim	main.py	/^import torch.optim as optim$/;"	i
+optim	new_test.py	/^import torch.optim as optim$/;"	i
+optimizer	main.py	/^optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)$/;"	v
+optimizer2	main.py	/^optimizer2 = optim.SGD(model2.parameters(), lr=args.lr, momentum=args.momentum)$/;"	v
+parser	main.py	/^parser = argparse.ArgumentParser(description='PyTorch MNIST Example')$/;"	v
+parser	new_test.py	/^parser = argparse.ArgumentParser(description='PyTorch MNIST Example')$/;"	v
+plt	main.py	/^import matplotlib.pyplot as plt$/;"	i
+plt	new_test.py	/^import matplotlib.pyplot as plt$/;"	i
+print_function	main.py	/^from __future__ import print_function$/;"	i
+print_function	new_test.py	/^from __future__ import print_function$/;"	i
+prior_time	main.py	/^            prior_time = t$/;"	v
+prior_time	main.py	/^prior_time = 0$/;"	v
+results	main.py	/^results = []$/;"	v
+results2	main.py	/^results2 = []$/;"	v
+test	main.py	/^def test(epoch):$/;"	f
+test2	main.py	/^def test2(epoch):$/;"	f
+test_loader	main.py	/^test_loader = torch.utils.data.DataLoader($/;"	v
+time	main.py	/^import time$/;"	i
+time	new_test.py	/^import time$/;"	i
+torch	main.py	/^import torch$/;"	i
+torch	main.py	/^import torch.nn as nn$/;"	i
+torch	main.py	/^import torch.nn.functional as F$/;"	i
+torch	main.py	/^import torch.optim as optim$/;"	i
+torch	new_test.py	/^import torch$/;"	i
+torch	new_test.py	/^import torch.nn as nn$/;"	i
+torch	new_test.py	/^import torch.nn.functional as F$/;"	i
+torch	new_test.py	/^import torch.optim as optim$/;"	i
+train	main.py	/^def train(epoch):$/;"	f
+train_loader	main.py	/^train_loader = torch.utils.data.DataLoader($/;"	v
+train_model	new_test.py	/^def train_model(epochs, r=1):$/;"	f
+train_model_cifar	new_test.py	/^def train_model_cifar(epochs, r=1):$/;"	f
+transform	main.py	/^                   transform=transforms.Compose([$/;"	v
+transforms	main.py	/^from torchvision import datasets, transforms$/;"	i
+transforms	new_test.py	/^from torchvision import datasets, transforms$/;"	i
+write_results_to_file	new_test.py	/^    def write_results_to_file(self):$/;"	m	class:TestResult
