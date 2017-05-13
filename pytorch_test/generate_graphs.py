@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 
 def get_data_from_file(filename):
     time = [[]]*10
@@ -71,8 +72,8 @@ def plot_run(n, d1, d2, label1, label2, title, filename):
 
     plt.legend()
     plt.title(title)
-    plt.xlim(0, 50)
-    plt.savefig(filename)
+    plt.xlim(0, 10)
+    plt.savefig(filename, dpi=1000)
 
 if __name__ == "__main__":
     files = ["data/pytorch_testMNIST_r10_1494606444.372261.csv",
@@ -80,15 +81,22 @@ if __name__ == "__main__":
             "data/pytorch_testMNIST_r2_1494604310.3732932.csv",
             "data/pytorch_testMNIST_r3_1494604394.554535.csv",
             "data/pytorch_testMNIST_r5_1494604393.506811.csv"]
-
-    r1_data = get_data_from_file(files[1])
-    r2_data = get_data_from_file(files[2])
-    r3_data = get_data_from_file(files[3])
-    r5_data = get_data_from_file(files[4])
-    r10_data = get_data_from_file(files[0])
-    create_avg_line_chart(r1_data, r2_data, "r = 1", "r = 2",
-            "Comparison of r = 1 vs r = 2", "r1_r2_comparison.png")
+    
+    
+    #r1_data = get_data_from_file(files[1])
+    #r2_data = get_data_from_file(files[2])
+    #r3_data = get_data_from_file(files[3])
+    r1_data = get_data_from_file("data/pytorch_testMNIST_r1.csv")
+    r2_data = get_data_from_file("data/pytorch_testMNIST_r2.csv")
+    r3_data = get_data_from_file("data/pytorch_testMNIST_r3.csv")
+    r5_data = get_data_from_file("data/pytorch_testMNIST_r5.csv")
+    #r5_data = get_data_from_file(files[4])
+    #r10_data = get_data_from_file(files[0])
 
     plot_run(0, r1_data, r2_data, "r = 1", "r = 2",
             "Comparison of r = 1 vs r = 2", "r1_r2_single_comp.png")
+    plot_run(0, r1_data, r3_data, "r = 1", "r = 3",
+            "Comparison of r = 1 vs r = 3", "r1_r3_single_comp.png")
+    plot_run(0, r1_data, r5_data, "r = 1", "r = 5",
+            "Comparison of r = 1 vs r = 5", "r1_r5_single_comp.png")
 
