@@ -332,12 +332,12 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 % Adds page borders and file info (page number, date, filename, etc)
-\usepackage[a4,frame,center]{crop}
+%\usepackage[a4,frame,center]{crop}
 
 \begin{document}
 
 % add line numbers
-\linenumbers
+%\linenumbers
 
 %
 % paper title
@@ -353,7 +353,7 @@
 % use a multiple column layout for up to three different
 % affiliations
 \author{\IEEEauthorblockN{Jeff Hajewski}
-\IEEEauthorblockA{College of Arts and Sciences\\
+\IEEEauthorblockA{
 University of Iowa\\
 Iowa City, Iowa\\
 Email: jeffrey-hajewski@uiowa.edu}}
@@ -399,9 +399,8 @@ Email: jeffrey-hajewski@uiowa.edu}}
 \begin{abstract}
     Stochastic Repeated Gradient Descent (SRGD) is a derivative of mini-batched
     SGD that performs multiple parameter updates for a given mini-batch within a
-    single training epoch. This approach results in dramatic speedups for
-    training large datasets without loss to accuracy. Additionally, even faster
-    results were achieved using an adaptive step-size suggested by \cite{bib:xu-assgd}.
+    single training epoch. The goal of this approach is to capitalize on CPU
+    cache to reduce the wait time between training iterations.
 \end{abstract}
 
 % no keywords
@@ -430,16 +429,14 @@ time to convergence versus mini-batch SGD.
 Stochastic Gradient Descent (SGD) has long been the standard optimization method
 in machine learning. Recent developments such as Adam and AdaGrad solve some of
 the shortcomings of SGD by using adaptive learning rates and scaled gradients.
-While these methods have seen substantial success, they can suffer from increased
-storage requirements, which is problematic for large problems. Additionally,
-they can be more challenging to implement, as the algorithms are more complex
-than standard SGD. Stochastic Repeated Gradient Descent achieves dramatic gains
-in compute time by taking advantage of CPU cache and allowing the use of larger
-mini-batch sizes without degrading convergence results. Further, for the
-mini-batch case of a single data point, SRGD reduces to standard SRGD, with a
-marginally slower compute time. If SRGD is given an adaptive learning rate, such
-as that proposed by Xu et. al. \cite{bib:xu-assgd}, performance is consistently better
-across the board.
+While these methods have seen substantial success, they can suffer from
+increased storage requirements, which is problematic for large problems.
+Additionally, they can be more challenging to implement, as the algorithms are
+more complex than standard SGD. Stochastic Repeated Gradient Descent aims to
+reduce compute time by taking advantage of CPU cache and allowing the use of
+larger mini-batch sizes without degrading convergence results. Additionally,
+SRGD can easily make use of adaptive learning rate approaches such as that
+proposed by Xu et. al. \cite{bib:xu-assgd}, or adaptive solvers such as Adam.
 
 \subsection{Background}
 Formally, we are solving the problem
@@ -450,28 +447,23 @@ Formally, we are solving the problem
 
 where we have $n$ number of data points, $x_i \in x \subset \mathbb{R}^d$ and
 corresponding labels $y_i \in \mathbb{R}$, and $f: \mathbb{R}^d \rightarrow
-\mathbb{R}$. We assume $f(x;\theta)$ is a linear function, parameterized by
-$\theta$ and given by~\ref{eq:f}
-
-\begin{equation}\label{eq:f}
-    f(x; \theta) = \sum_{i = 1}^d \theta_i x_i
-\end{equation}
-
+\mathbb{R}$. 
 
 \subsubsection{Stochastic Gradient Descent}
 Stochastic Gradient Descent is a derivative of Gradient Descent where the
 gradient $\nabla f(x; \theta)$ is replaced by $\nabla f(x_i; \theta)$, an
 approximation of the gradient calculated by computing the gradient at a randomly
-selected point, $x_i \in x$, determined by uniformly sampling (with replacement) over the
-data set. The parameter update is then performed via the standard
-update~\ref{eq:sgd}, where $x_i$ is a single data point
+selected point, $x_i \in x$, determined by uniformly sampling (with replacement)
+over the data set, rather than the true gradient calculated over the entire data
+set. The parameter update is then performed via the standard
+update given by equation~\ref{eq:sgd}, where $x_i$ is a single data point
 
 \begin{equation}\label{eq:sgd}
     \theta_{k+1} \gets \theta_k - \alpha \nabla f(x_i; \theta_k)
 \end{equation}
 
-Each pass over the dataset is considered an epoch, thus multiple passes over the
-dataset may occur. This approach, however, has a couple of drawbackswith the
+Each pass over the dataset is considered an epoch and multiple passes over the
+dataset may occur. This approach, however, has a couple of drawbacks, with the
 main drawback being an increase in variance of the approximate gradient. This
 results in slowing the rate of convergence when compared to Gradient Descent. A
 number of approaches attempt to reduce this variance [refs-here], but the
@@ -483,19 +475,17 @@ points, and without loss of generality let $m = \frac{n}{b}$, such that $b$ is a
 multiple of the number of points) from a uniform distribution of the data,
 without replacement. This mini-batch is used to attain a better (more stable)
 approximation of the approximate gradient, which is then used in the weight
-update~\ref{eq:update}.
+update equation~\ref{eq:update}.
 
 \subsection{Stochastic Repeated Gradient Descent}
-SRGD improves upon mini-batch SGD by using recently cached data to perform
+The goal of SRGD is to improve upon mini-batch SGD by using recently cached data to perform
 several updates of the weights via~\ref{eq:update} before sampling new data. By
 not sampling new data at each update, the mini-batch data remains in cache.
 While this increases the variance in the theoretical convergence of our method,
-the compute time is reduced. Additionally, we use a dynamic learning
-rate, which is geometrically decreased by a factor of $\frac{1}{2}$ when successive
-weight updates are within some threshold value $\epsilon$ of eachother. This
-threshold is also reduced by a factor of $\frac{1}{2}$. We combine this with an
-early stopping threshold, which compares the slope of the line connecting
-successive weight updates to some threshold value $\epsilon_{stop}$.
+the compute time is reduced. This approach is best used with an adaptive
+learning rate. In this work, we experiemented with stepping the gradient after a
+certain level of convergence was readed (as proposed in \cite{bib:xu-assgd}) but decided to
+use Adam as the solver, as this simplified implmenetation.
 
 We denote the gradient update term by $\Delta\theta_{i,j}^{k}(x_{I_i}, \alpha)$ as
 simplification in notation. It is defined as:
@@ -520,17 +510,11 @@ in $I_i$.
 \end{equation*}
 
 \section{Algorithm}
-Algorithm~\ref{fig:algorithm1}  details the SRGD algorithm. Additionally, we check for convergence
-and stop early if convergence as been achieved. The key step is repeating with
-weight update $r$ times using the same mini-batch data. This results in $r$
-approximate gradient computations along with $r$ weight updates. After the
-weights are updated, we check to see how close they are to the prior weights and
-if they are close enough (i.e., convergence is slowing down), we decrease the
-learning rate. This approach allows us to start out with a coarser learning rate
-while avoiding over-shooting the minimum. By default, SRGD doubles the input
-learning rate to make it even coarser. In the dynamic version, of
-course this is offset by adaptively updating the learning rate based on
-rate of convergence (measured by the distance between prior weight updates).
+Algorithm~\ref{fig:algorithm1}  details the SRGD algorithm. Additionally, we
+check for convergence and stop early if convergence as been achieved. The key
+step is repeating with weight update $r$ times using the same mini-batch data.
+This results in $r$ approximate gradient computations along with $r$ weight
+updates. 
 
 \begin{figure}
     \textbf{Algorithm 1}
@@ -552,13 +536,6 @@ rate of convergence (measured by the distance between prior weight updates).
             \FOR {$j = 1$ to $r$}
                 \STATE $\theta_{i+1,j}^k \gets \theta_{i,j}^k + \Delta \theta_{i,j}^k(x_{I_i}, r,
                     \alpha)$
-                \IF {$||\theta_{i+1,j}^k - \theta_{i,j}^{k}|| < \epsilon$}
-                    \STATE $\alpha \gets \frac{\alpha}{2}$
-                    \STATE $\epsilon \gets \frac{\epsilon}{2}$
-                    \ELSIF {$\frac{1}{\alpha}||\theta_{i+1,j}^k - \theta_{i,j}^k|| <
-                    \epsilon_{stop}$}
-                    \RETURN $\theta_i^k$
-                \ENDIF
             \ENDFOR
         \ENDFOR
     \ENDFOR 
@@ -569,39 +546,23 @@ rate of convergence (measured by the distance between prior weight updates).
 
 \section{Experiment}
 Experiments were performed on a 3.4GHz Intel i7-6700K hexa-core workstation with 64GB
-of RAM. In addition to measuring the time to convergence, we also measure the
-number of steps taken to converge to the solution (where a step is considered a
-weight update).
+of RAM. We only consider time to convergence in our tests. We expect that the
+total number of steps (i.e., work) is greater than standard SGD, however we
+capitalize on faster compute time to overcome the greater amount of work.
 
 \subsection{Problem Definition}
-The labeled data is generated via the function shown in
-equation~\ref{eq:generator},
-
-\begin{equation}\label{eq:generator}
-    y(x;\omega) = \sum_{i=1}^d \omega_i x_i
-\end{equation}
-
-where $\omega \in [-10, 10]$ and $x \in [-10, 10]$. While this is a small problem,
-it is easy to control and measure approximation error (since we know the
-coefficients exactly). The coefficients, $\omega$, are sampled from the
-distribution $U(-10, 10)$ while the $x$ values are generated by sample $x_i$ (the
-i-th component of a given $x$) from the distribution $U(-10,10)$.
+We use the MNIST data set \cite{bib:mnist} to evaluate our approach. The goal of the
+MNIST data set is to calssify the input images as one of the digits 0 - 9. The
+model we fit is a convolutional neural network, consisting of two convolutional
+layers, both feedinginto max pooling layers before hitting ReLU activation
+functions. The second convolutional layer also implements dropout[ADD REF].
+Lastly, there are two fully connected, linear layers prior to a softmax. 
 
 \subsection{Methodology}
-We look at several metrics in assessing the validity and performance of SRGD. The
-first metric is run time. This is simply the time it takes for comparably tuned
-algorithms to converge to the solution. Our experiments consider four
-algorithms: SGD, ASSGD, SRGD, ASSRGD. The ASSGD algorithm proposed by Xu et
-al. \cite{bib:xu-assgd}, is the adaptive learning rate algorithm mentioned in the
-preceding section. The SRGD runs do not use the adpative learning rate while
-the ASSRGD runs do use an adaptive learning rate.
-
-At the time of writing, a 1,000 dimensional case was running. The results that
-follow are based on runs of dimension 10, 50, and 100. The number of data points
-generated for each scenario was a function of the dimension, namely $dimension * 1000$.
-Additionally, the threshold level used for the ASSG methods (ASSG and ASSSRGD) was
-set to 0.001. It should be noted that this was probably not the optimal level and
-further tuning is recommended.
+We use PyTorch \cite{bib:pytorch}, a machine learning framework that is an offshoot of
+Torch, written almost entirely in Python, but also has some low-level linear
+algebra libraries that can utilize CUDA. It is very easy to use, and since it is
+written almost entirely in Python, it is very extensible.
 
 \subsection{Results}
 Based on our experiments there appear to be two domains in which SRGD is
@@ -609,67 +570,6 @@ optimal. In one domain, typically as the mini-batch size approaches the
 problem size, SRGD takes more compute time but achieves materially better
 accuracy. In the other domain, SRGD runs at a fraction of the time of
 SGD and achieves better accuracy (frequently an order of magnitude better).
-
-The implementation of SRGD used in this work multiplies the given learning
-rate by a factor of two, which is why it run slightly faster than standard SGD
-for the $r = 1$ case (since one would expect them to run at the same speed).
-Given difference in times between SGD and SRGD for the $r = 1$ case in tables
-presented here, it appears some additional tuning of the learning rate may
-improve the convergence of SGD and SRGD for this problem.
-
-\begin{table}[!t]
-% increase table row spacing, adjust to taste
-\renewcommand{\arraystretch}{1.3}
-\caption{Batch-Size of 1 in 50 Dimensions}
-\label{tab:d50mb1}
-\centering
-% Some packages, such as MDW tools, offer better commands for making tables
-% than the plain LaTeX2e tabular which is used here.
-\begin{tabular}{|c||c|c|c|c|c|c|}
-\hline
-\multirow{2}{*}{Optimizer} &
-    \multicolumn{2}{c}{$r = 1$} &
-    \multicolumn{2}{c}{$r = 5$} &
-    \multicolumn{2}{c|}{$r = 10$}\\
-    & Error & Time & Error & Time & Error & Time \\
-    \hline
-    SGD & 0.0020 & 14.1 & 0.0020 & 14.1 & 0.0020 & 14.1\\
-    \hline
-    ASSGD & 0.4435 & 29.0 & 0.4435 & 29.0 & 0.4435 & 29.0\\ 
-    \hline
-    SRGD & 0.0001 & 9.8 & 0.0001 & 6.3 & 0.0000 & 6.3\\
-    \hline
-    ASSRGD & 0.0090 & 25.1 & 0.0009 & 7.9 & 0.0002 & 6.4\\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{table}[!t]
-% increase table row spacing, adjust to taste
-\renewcommand{\arraystretch}{1.3}
-\caption{Batch-Size of 50 in 50 Dimensions}
-\label{tab:d50mb50}
-\centering
-% Some packages, such as MDW tools, offer better commands for making tables
-% than the plain LaTeX2e tabular which is used here.
-\begin{tabular}{|c||c|c|c|c|c|c|}
-\hline
-\multirow{2}{*}{Optimizer} &
-    \multicolumn{2}{c}{$r = 1$} &
-    \multicolumn{2}{c}{$r = 5$} &
-    \multicolumn{2}{c|}{$r = 10$}\\
-    & Error & Time & Error & Time & Error & Time \\
-    \hline
-    SGD & 1.1893 & 4.9 & 1.1893 & 4.9 & 1.1893 & 4.9\\ 
-    \hline
-    ASSGD & 1.3576 & 5.0 & 1.3576 & 5.0 & 1.3576 & 5.0\\ 
-    \hline
-    SRGD & 0.084 & 5.0  & 0.0000 & 2.8 & 0.0000 & 1.7\\
-    \hline
-    ASSRGD & 0.0245 & 4.8 & 0.0001 & 3.3 & 0.0000 & 2.5\\
-\hline
-\end{tabular}
-\end{table}
 
 \begin{table}[!t]
 % increase table row spacing, adjust to taste
@@ -854,21 +754,49 @@ able to do more with less information.
 
 
 \section{Future Work}
-There are two key next steps in assessing this mehtod. The first
-is to increase the compute time of the gradient. The reasoning behind
-this approach is to perform a cost-benefit analysis of cache and
-additional information versus additional compute time. In other words,
-there is likely a tipping point where the additional information gained
-by the repeated weight updates is offset by the time required to compute
-the gradient. Whereas standard SGD extracts less information from
-each data point per weight update than SRGD in a shorter period of time,
-SRGD extracts more information but requires more time to do this. For the
-results seen in this paper, that time tradeoff is offset by the additional
-information and the help of CPU cache for data access. However, one would
-expect there is a point where the additional time ultimately increases
-the total compute time of SRGD such that SGD is actually faster.
+A key issue in evaluating the efficacy of this new methodology is determining
+whether the algorithm is getting cache hits on the data while training. This is
+an extremely low-level process and not as straightforward to measure. Further
+compounding the issue is the use of Python makes cache-misses extremely likely
+(due to the nature of the Python language). At a high level, almost everything
+in Python is an object and so there is a lot of indirection for seemingly simple
+Python expressions. This means that by the time we perform an update and go to
+recalculate the gradient for the same data point, the data has probably been
+evicted from the cache. At this point, it must be refetched from RAM, which is
+the exact situation we are trying to avoid with this new approach.\\
 
+The question remains: what can be done? The next step is to move to a
+lower-level language such as C or C++ and implement a smaller test problem. Our
+intution is that while this started out as a clever approach to squeeze some
+additional performance out of various optimization algorithms, it appears to
+effectively utilize the L1 or L2 caches the optimization routines will need to
+be highly optimized to a point that it is beyond the scope of an average
+library user. Take, as a comparison, the BLAS library, which is highly optimized
+and makes extensive use of cache-optimized algorithms. The matrix-multiply
+routines are substnatially more complicated than the standard approach of three
+nested for-loops.\\
 
+The last complicating factor in our approach is that of both hyper-threading and
+asynchronous data fetching. In the hyper-threaded setting, the CPU actually
+prefetches the data into cache while performing its standard tasks (actually,
+these two processes are interleaved) -- this has the effect of removing any
+latency from RAM access. That's not to say there is no room for cache
+optimization on modern processors, just that it takes quite a bit more planning.
+The other related issue is that of asynchronous data fetching. The framework
+Caffe [ADD REF] is a great example of this approach. Caffe creates (at least)
+two threads, one for main program execution and the other to handle data
+fetching. While the model is making its forward and backward passes (training
+phase), the data thread is pulling data from the database (which is typically on
+disk) into memory, preparing it for use in training. This implementation is
+quite efficient, and removes a lot of the latency from data access.
+
+\section{Conclusion}
+While we did not achieve the results we were hoping for in this project, a lot
+was learned. At a minimum, at this level of optimization having a strong
+understanding of the hardware and OS operations is quite important. Making use
+of cache optimizations can certainly improve overall runtime, but is much more
+complex than we initially thought. It may turn out that these optimzations can
+be made, just not at the data load phase of the optimizer.
 
 % conference papers do not normally have an appendix
 
@@ -914,6 +842,11 @@ the total compute time of SRGD such that SGD is actually faster.
 Y.~Xu, Q.~Lin, T.~Yang, \emph{Accelerated Stochastic Subgradient Methods
 under Local Error Bound Condition}, arXiv:1607.01027, 2017
 
+\bibitem{bib:mnist}
+Y.~LeCun, C.~Cortes, \emph{MNIST handwritten digit database}, http://yann.lecun.com/exdb/mnist/, 2010
+
+\bibitem{bib:pytorch}
+\emph{PyTorch}, https://pytorch.org
 \end{thebibliography}
 
 
